@@ -8,6 +8,7 @@ import {
 import { db } from '../../db/schema'
 import { ModaleCreationExercice } from '../exercices/ModaleCreationExercice'
 import { nowIso } from '../../utils/dates'
+import { definirPrevisionSeries } from '../../db/prevision'
 
 interface Props {
   groupes: GroupeMusculaire[]
@@ -116,13 +117,14 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
       notes: '',
     })
     for (const [index, e] of exercicesCoches.entries()) {
-      await db.seanceExercices.add({
+      const seanceExerciceId = await db.seanceExercices.add({
         seanceId,
-        exerciceId: e.id!,
+        exerciceId: e.id,
         ordre: index,
         statut: 'a_faire',
         remplaceExerciceId: null,
       })
+      await definirPrevisionSeries(seanceExerciceId, selections[e.id]?.seriesPrevues ?? 3)
     }
     onDemarrer(seanceId)
   }

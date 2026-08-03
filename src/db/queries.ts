@@ -1,6 +1,7 @@
 import { db } from './schema'
-import type { Exercice, GroupeMusculaire, Seance } from './types'
+import type { Exercice, GroupeMusculaire, Seance, SeanceExercice, Serie } from './types'
 import { estDansSemaine, joursDepuis } from '../utils/dates'
+import { serieEstEfficace } from './rir'
 
 export interface EtatGroupe {
   groupe: GroupeMusculaire
@@ -61,8 +62,7 @@ export async function seriesEfficacesSemaine(groupe: GroupeMusculaire): Promise<
 
   let total = 0
   for (const s of series) {
-    if (!s.validee || s.type === 'échauffement') continue
-    if (s.rir !== null && s.rir > 3) continue
+    if (!serieEstEfficace(s)) continue
     const se = seanceExercices.find((x) => x.id === s.seanceExerciceId)
     if (!se) continue
     const seance = seancesParId.get(se.seanceId)
@@ -119,4 +119,73 @@ export async function idsExercicesDerniereSeance(groupes: GroupeMusculaire[]): P
 export async function seanceEnCours(): Promise<Seance | null> {
   const seances = await db.seances.where('statut').equals('en_cours').toArray()
   return seances[0] ?? null
+}
+
+export interface SeanceExerciceDetail {
+  seance: Seance
+  seanceExercice: SeanceExercice
+  series: Serie[]
+}
+
+export async function derniereSeanceExercicePourExercice(
+  exerciceId: number,
+  exclureSeanceId?: number,
+): Promise<SeanceExerciceDetail | null> {
+  const candidats = await db.seanceExercices.where('exerciceId').equals(exerciceId).toArray()
+
+  let meilleur: { seance: Seance; se: SeanceExercice } | null = null
+  for (const se of candidats) {
+    if (se.seanceId === exclureSeanceId) continue
+    const seance = await db.seances.get(se.seanceId)
+    if (!seance || seance.statut !== 'terminee') continue
+    if (!meilleur || seance.date > meilleur.seance.date) {
+      meilleur = { seance, se }
+    }
+  }
+  if (!meilleur) return null
+
+  const series = (await db.series.where('seanceExerciceId').equals(meilleur.se.id).toArray()).sort(
+    (a, b) => a.numeroSerie - b.numeroSerie,
+  )
+  return { seance: meilleur.seance, seanceExercice: meilleur.se, series }
+}
+
+export async function historiqueExercice(
+  exerciceId: number,
+  limite = 12,
+): Promise<{ seance: Seance; series: Serie[] }[]> {
+  const seanceExercices = await db.seanceExercices.where('exerciceId').equals(exerciceId).toArray()
+  const resultats: { seance: Seance; series: Serie[] }[] = []
+
+  for (const se of seanceExercices) {
+    const seance = await db.seances.get(se.seanceId)
+    if (!seance || seance.statut !== 'terminee') continue
+    const series = (await db.series.where('seanceExerciceId').equals(se.id).toArray()).sort(
+      (a, b) => a.numeroSerie - b.numeroSerie,
+    )
+    resultats.push({ seance, series })
+  }
+
+  resultats.sort((a, b) => b.seance.date.localeCompare(a.seance.date))
+  return resultats.slice(0, limite)
+}
+
+export interface SeanceExerciceAvecExercice extends SeanceExercice {
+  exercice: Exercice
+}
+
+export async function seanceExercicesAvecDetails(seanceId: number): Promise<SeanceExerciceAvecExercice[]> {
+  const liste = await db.seanceExercices.where('seanceId').equals(seanceId).sortBy('ordre')
+  const resultats: SeanceExerciceAvecExercice[] = []
+  for (const se of liste) {
+    const exercice = await db.exercices.get(se.exerciceId)
+    if (exercice) resultats.push({ ...se, exercice })
+  }
+  return resultats
+}
+
+export async function seriesPourSeanceExercice(seanceExerciceId: number): Promise<Serie[]> {
+  return (await db.series.where('seanceExerciceId').equals(seanceExerciceId).toArray()).sort(
+    (a, b) => a.numeroSerie - b.numeroSerie,
+  )
 }

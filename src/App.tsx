@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { db } from './db/schema'
 import { initialiserDonneesParDefaut } from './db/seed'
 import { seanceEnCours } from './db/queries'
 import { AccueilScreen } from './features/accueil/AccueilScreen'
 import { SelectionScreen } from './features/selection/SelectionScreen'
-import { SeanceScreenStub } from './features/seance/SeanceScreenStub'
+import { SeanceScreen } from './features/seance/SeanceScreen'
 import type { GroupeMusculaire } from './db/types'
 
 type Vue =
@@ -24,7 +23,7 @@ function App() {
         navigator.storage.persist().catch(() => {})
       }
       const enCours = await seanceEnCours()
-      setVue(enCours ? { nom: 'seance', seanceId: enCours.id! } : { nom: 'accueil' })
+      setVue(enCours ? { nom: 'seance', seanceId: enCours.id } : { nom: 'accueil' })
     }
     demarrer().catch((e) => setErreur(String(e)))
   }, [])
@@ -55,15 +54,7 @@ function App() {
     )
   }
 
-  return (
-    <SeanceScreenStub
-      seanceId={vue.seanceId}
-      onTerminer={async () => {
-        await db.seances.update(vue.seanceId, { statut: 'terminee', dateFin: new Date().toISOString() })
-        setVue({ nom: 'accueil' })
-      }}
-    />
-  )
+  return <SeanceScreen seanceId={vue.seanceId} onTerminee={() => setVue({ nom: 'accueil' })} />
 }
 
 export default App
