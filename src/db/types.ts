@@ -41,7 +41,7 @@ export type StatutSeance = 'en_cours' | 'terminee'
 export type StatutSeanceExercice = 'a_faire' | 'en_cours' | 'fait' | 'passe'
 
 export interface Exercice {
-  id?: number
+  id: number
   nom: string
   groupeMusculaire: GroupeMusculaire
   typeCharge: TypeCharge
@@ -55,14 +55,14 @@ export interface Exercice {
 }
 
 export interface Programme {
-  id?: number
+  id: number
   nom: string
   ordre: number
   archive: boolean
 }
 
 export interface ProgrammeExercice {
-  id?: number
+  id: number
   programmeId: number
   exerciceId: number
   ordre: number
@@ -73,7 +73,7 @@ export interface ProgrammeExercice {
 }
 
 export interface Seance {
-  id?: number
+  id: number
   date: string
   dateDebut: string
   dateFin: string | null
@@ -83,7 +83,7 @@ export interface Seance {
 }
 
 export interface SeanceExercice {
-  id?: number
+  id: number
   seanceId: number
   exerciceId: number
   ordre: number
@@ -92,7 +92,7 @@ export interface SeanceExercice {
 }
 
 export interface Serie {
-  id?: number
+  id: number
   seanceExerciceId: number
   numeroSerie: number
   poidsKg: number
@@ -112,7 +112,7 @@ export interface CibleVolume {
 }
 
 export interface PoidsCorporel {
-  id?: number
+  id: number
   date: string
   poidsKg: number
 }

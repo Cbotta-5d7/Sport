@@ -1,6 +1,8 @@
 import { db } from './schema'
 import type { CibleVolume, Exercice } from './types'
 
+type NouvelExercice = Omit<Exercice, 'id'>
+
 const POLY = { min: 8, max: 12, repos: 150 }
 const ISOLATION = { min: 10, max: 15, repos: 90 }
 const MOLLETS = { min: 12, max: 20, repos: 60 }
@@ -12,7 +14,7 @@ function exo(
   incrementKg: Exercice['incrementKg'],
   fourchette: { min: number; max: number; repos: number },
   estRepere = false,
-): Exercice {
+): NouvelExercice {
   return {
     nom,
     groupeMusculaire,
@@ -27,7 +29,7 @@ function exo(
   }
 }
 
-export const EXERCICES_DEPART: Exercice[] = [
+export const EXERCICES_DEPART: NouvelExercice[] = [
   // Pectoraux
   exo('Développé couché', 'Pectoraux', 'barre', 2.5, POLY, true),
   exo('Développé incliné haltères', 'Pectoraux', 'haltères', 1, POLY),

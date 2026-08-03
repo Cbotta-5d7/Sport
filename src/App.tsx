@@ -1,58 +1,68 @@
 import { useEffect, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from './db/schema'
 import { initialiserDonneesParDefaut } from './db/seed'
+import { seanceEnCours } from './db/queries'
+import { AccueilScreen } from './features/accueil/AccueilScreen'
+import { SelectionScreen } from './features/selection/SelectionScreen'
+import { SeanceScreenStub } from './features/seance/SeanceScreenStub'
+import type { GroupeMusculaire } from './db/types'
+
+type Vue =
+  | { nom: 'chargement' }
+  | { nom: 'accueil' }
+  | { nom: 'selection'; groupes: GroupeMusculaire[] }
+  | { nom: 'seance'; seanceId: number }
 
 function App() {
-  const [pret, setPret] = useState(false)
+  const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
   const [erreur, setErreur] = useState<string | null>(null)
 
   useEffect(() => {
-    initialiserDonneesParDefaut()
-      .then(() => setPret(true))
-      .catch((e) => setErreur(String(e)))
-
-    if (navigator.storage?.persist) {
-      navigator.storage.persist().catch(() => {})
+    async function demarrer() {
+      await initialiserDonneesParDefaut()
+      if (navigator.storage?.persist) {
+        navigator.storage.persist().catch(() => {})
+      }
+      const enCours = await seanceEnCours()
+      setVue(enCours ? { nom: 'seance', seanceId: enCours.id! } : { nom: 'accueil' })
     }
+    demarrer().catch((e) => setErreur(String(e)))
   }, [])
 
-  const nbExercices = useLiveQuery(() => db.exercices.count(), [], undefined)
-  const nbCibles = useLiveQuery(() => db.ciblesVolume.count(), [], undefined)
+  if (erreur) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center px-6 text-center text-red-400">
+        Erreur d'initialisation : {erreur}
+      </div>
+    )
+  }
+
+  if (vue.nom === 'chargement') {
+    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+  }
+
+  if (vue.nom === 'accueil') {
+    return <AccueilScreen onContinuer={(groupes) => setVue({ nom: 'selection', groupes })} />
+  }
+
+  if (vue.nom === 'selection') {
+    return (
+      <SelectionScreen
+        groupes={vue.groupes}
+        onRetour={() => setVue({ nom: 'accueil' })}
+        onDemarrer={(seanceId) => setVue({ nom: 'seance', seanceId })}
+      />
+    )
+  }
 
   return (
-    <div
-      className="flex min-h-dvh flex-col items-center justify-center gap-4 px-6 text-center"
-      style={{
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+    <SeanceScreenStub
+      seanceId={vue.seanceId}
+      onTerminer={async () => {
+        await db.seances.update(vue.seanceId, { statut: 'terminee', dateFin: new Date().toISOString() })
+        setVue({ nom: 'accueil' })
       }}
-    >
-      <h1 className="text-3xl font-semibold text-slate-50">Musculation</h1>
-
-      {erreur && (
-        <p className="max-w-sm text-sm text-red-400">
-          Erreur d'initialisation : {erreur}
-        </p>
-      )}
-
-      {!erreur && (
-        <div className="flex flex-col items-center gap-1 text-slate-300">
-          <p>
-            {pret ? 'Base locale initialisée.' : "Initialisation en cours..."}
-          </p>
-          {pret && (
-            <p className="text-sm text-slate-400">
-              {nbExercices ?? '…'} exercices, {nbCibles ?? '…'} cibles de volume
-            </p>
-          )}
-        </div>
-      )}
-
-      <p className="mt-8 max-w-sm text-xs text-slate-500">
-        Phase 1 : socle technique. Les écrans de séance arrivent en phase 2 et 3.
-      </p>
-    </div>
+    />
   )
 }
 
