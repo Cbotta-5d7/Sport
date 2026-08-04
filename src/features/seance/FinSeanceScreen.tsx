@@ -96,7 +96,7 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
   }, [seanceId])
 
   if (!recap) {
-    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+    return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
 
   return (
@@ -104,19 +104,19 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
       className="flex min-h-dvh flex-col px-4 py-6"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1.5rem)' }}
     >
-      <h1 className="mb-1 text-2xl font-semibold text-slate-50">Séance terminée</h1>
-      <p className="mb-6 text-slate-400">Durée {formatDuree(recap.seance.dureeSec)}</p>
+      <h1 className="mb-1 text-2xl font-semibold text-slate-900">Séance terminée</h1>
+      <p className="mb-6 text-slate-500">Durée {formatDuree(recap.seance.dureeSec)}</p>
 
-      <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
-        <p className="text-lg font-semibold text-slate-50">Tonnage total {formatKg(recap.tonnageTotal)} kg</p>
+      <div className="mb-6 rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+        <p className="text-lg font-semibold text-slate-900">Tonnage total {formatKg(recap.tonnageTotal)} kg</p>
         {recap.variationTonnagePrecedente !== null && (
           <p
             className={
               recap.variationTonnagePrecedente > 2
-                ? 'text-emerald-400'
+                ? 'text-emerald-600'
                 : recap.variationTonnagePrecedente < -2
-                  ? 'text-red-400'
-                  : 'text-slate-400'
+                  ? 'text-red-600'
+                  : 'text-slate-500'
             }
           >
             vs séance précédente {recap.variationTonnagePrecedente > 0 ? '+' : ''}
@@ -125,12 +125,12 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
         )}
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Séries efficaces par groupe</h2>
-      <div className="mb-6 overflow-hidden rounded-xl border border-slate-800">
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Séries efficaces par groupe</h2>
+      <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200">
         {recap.parGroupe.map((g) => (
-          <div key={g.groupe} className="flex justify-between border-b border-slate-800 px-4 py-2 last:border-0">
-            <span className="text-slate-100">{g.groupe}</span>
-            <span className="text-slate-400">
+          <div key={g.groupe} className="flex justify-between border-b border-slate-200 px-4 py-2 last:border-0">
+            <span className="text-slate-800">{g.groupe}</span>
+            <span className="text-slate-500">
               {g.seriesEfficaces} séries efficaces · {formatKg(g.tonnage)} kg
             </span>
           </div>
@@ -139,10 +139,10 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
 
       {recap.records.length > 0 && (
         <>
-          <h2 className="mb-2 text-sm font-medium text-slate-400">Records battus</h2>
+          <h2 className="mb-2 text-sm font-medium text-slate-500">Records battus</h2>
           <div className="mb-6 flex flex-col gap-2">
             {recap.records.map((r, i) => (
-              <p key={i} className="rounded-lg border border-amber-700 bg-amber-950/40 px-3 py-2 text-sm text-amber-300">
+              <p key={i} className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700">
                 🏆 {r.exercice} · {formatKg(r.poidsKg)} kg x {r.reps}
               </p>
             ))}
@@ -151,16 +151,16 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
       )}
 
       {recap.seance.notes && (
-        <div className="mb-6 rounded-xl border border-slate-800 px-4 py-3">
-          <p className="mb-1 text-sm font-medium text-slate-400">Note</p>
-          <p className="text-slate-100">{recap.seance.notes}</p>
+        <div className="mb-6 rounded-2xl border border-slate-200 px-4 py-3">
+          <p className="mb-1 text-sm font-medium text-slate-500">Note</p>
+          <p className="text-slate-800">{recap.seance.notes}</p>
         </div>
       )}
 
       <button
         type="button"
         onClick={onFermer}
-        className="mt-auto min-h-14 rounded-xl bg-accent text-lg font-semibold text-slate-950"
+        className="mt-auto min-h-14 rounded-2xl bg-accent text-lg font-semibold text-slate-950"
       >
         Retour à l'accueil
       </button>

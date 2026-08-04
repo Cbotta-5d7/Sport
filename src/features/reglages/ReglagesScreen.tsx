@@ -117,7 +117,7 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
           <button
             type="button"
             onClick={onRetour}
-            className="min-h-11 min-w-11 rounded-lg border border-slate-700 text-slate-300"
+            className="min-h-11 min-w-11 rounded-xl border border-slate-300 text-slate-600"
           >
             ←
           </button>
@@ -126,43 +126,43 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
         <IndicateurSync />
       </header>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Séances</h2>
-      <div className="mb-6 flex items-center justify-between rounded-xl border border-slate-800 px-4 py-3">
-        <span className="text-sm text-slate-200">Cible de séances par semaine</span>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Séances</h2>
+      <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
+        <span className="text-sm text-slate-700">Cible de séances par semaine</span>
         <input
           type="text"
           inputMode="numeric"
           value={seancesCibleParSemaine}
           onChange={(e) => changerSeancesCible(e.target.value)}
-          className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-center text-slate-50"
+          className="w-14 rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-center text-slate-900"
         />
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Cibles de volume par groupe</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Cibles de volume par groupe</h2>
       <div className="mb-6">
         <ReglagesVolume />
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Matériel</h2>
-      <div className="mb-3 flex items-center justify-between rounded-xl border border-slate-800 px-4 py-3">
-        <span className="text-sm text-slate-200">Poids de la barre (kg)</span>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Matériel</h2>
+      <div className="mb-3 flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
+        <span className="text-sm text-slate-700">Poids de la barre (kg)</span>
         <input
           type="text"
           inputMode="decimal"
           value={poidsBarreKg}
           onChange={(e) => changerPoidsBarre(e.target.value)}
-          className="w-16 rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-center text-slate-50"
+          className="w-16 rounded-xl border border-slate-300 bg-slate-50 px-2 py-1 text-center text-slate-900"
         />
       </div>
-      <p className="mb-2 text-xs text-slate-500">Inventaire de disques disponibles (par côté)</p>
+      <p className="mb-2 text-xs text-slate-400">Inventaire de disques disponibles (par côté)</p>
       <div className="mb-6 flex flex-wrap gap-2">
         {PLAGES_DISQUES.map((p) => (
           <button
             key={p}
             type="button"
             onClick={() => basculerDisque(p)}
-            className={`min-h-10 rounded-lg border px-3 text-sm ${
-              inventaireDisques.includes(p) ? 'border-accent text-accent' : 'border-slate-700 text-slate-500'
+            className={`min-h-10 rounded-xl border px-3 text-sm ${
+              inventaireDisques.includes(p) ? 'border-accent text-accent' : 'border-slate-300 text-slate-400'
             }`}
           >
             {p.toString().replace('.', ',')} kg
@@ -172,73 +172,73 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
       <button
         type="button"
         onClick={onOuvrirCalculateur}
-        className="mb-6 min-h-12 rounded-xl border border-slate-700 text-sm text-slate-200"
+        className="mb-6 min-h-12 rounded-2xl border border-slate-300 text-sm text-slate-700"
       >
         Ouvrir le calculateur de disques
       </button>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Son et vibration</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Son et vibration</h2>
       <div className="mb-6 flex flex-col gap-2">
         <button
           type="button"
           onClick={basculerSon}
-          className="flex min-h-12 items-center justify-between rounded-xl border border-slate-800 px-4 text-sm text-slate-200"
+          className="flex min-h-12 items-center justify-between rounded-2xl border border-slate-200 px-4 text-sm text-slate-700"
         >
           Son du minuteur
-          <span className={sonActif ? 'text-accent' : 'text-slate-500'}>{sonActif ? 'Activé' : 'Désactivé'}</span>
+          <span className={sonActif ? 'text-accent' : 'text-slate-400'}>{sonActif ? 'Activé' : 'Désactivé'}</span>
         </button>
         <button
           type="button"
           onClick={basculerVibration}
-          className="flex min-h-12 items-center justify-between rounded-xl border border-slate-800 px-4 text-sm text-slate-200"
+          className="flex min-h-12 items-center justify-between rounded-2xl border border-slate-200 px-4 text-sm text-slate-700"
         >
           Vibration
-          <span className={vibrationActif ? 'text-accent' : 'text-slate-500'}>{vibrationActif ? 'Activée' : 'Désactivée'}</span>
+          <span className={vibrationActif ? 'text-accent' : 'text-slate-400'}>{vibrationActif ? 'Activée' : 'Désactivée'}</span>
         </button>
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-400">Sauvegarde GitHub</h2>
-      <p className="mb-4 text-xs text-slate-500">
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Sauvegarde GitHub</h2>
+      <p className="mb-4 text-xs text-slate-400">
         Dépôt privé dédié aux données uniquement (jamais le dépôt public du code). Le jeton reste stocké
         uniquement sur cet appareil.
       </p>
 
-      <label className="mb-1 text-xs text-slate-500">Propriétaire (utilisateur ou organisation)</label>
+      <label className="mb-1 text-xs text-slate-400">Propriétaire (utilisateur ou organisation)</label>
       <input
         type="text"
         value={proprietaire}
         onChange={(e) => setProprietaire(e.target.value)}
         placeholder="ex. Cbotta-5d7"
-        className="mb-3 min-h-12 rounded-xl border border-slate-700 bg-slate-950 px-4 text-slate-50 outline-none focus:border-accent"
+        className="mb-3 min-h-12 rounded-2xl border border-slate-300 bg-slate-50 px-4 text-slate-900 outline-none focus:border-accent"
       />
 
-      <label className="mb-1 text-xs text-slate-500">Nom du dépôt privé</label>
+      <label className="mb-1 text-xs text-slate-400">Nom du dépôt privé</label>
       <input
         type="text"
         value={depot}
         onChange={(e) => setDepot(e.target.value)}
         placeholder="ex. sport-data"
-        className="mb-3 min-h-12 rounded-xl border border-slate-700 bg-slate-950 px-4 text-slate-50 outline-none focus:border-accent"
+        className="mb-3 min-h-12 rounded-2xl border border-slate-300 bg-slate-50 px-4 text-slate-900 outline-none focus:border-accent"
       />
 
-      <label className="mb-1 text-xs text-slate-500">Jeton d'accès (fine-grained, Contents: Read & write)</label>
+      <label className="mb-1 text-xs text-slate-400">Jeton d'accès (fine-grained, Contents: Read & write)</label>
       <input
         type="password"
         value={jeton}
         onChange={(e) => setJeton(e.target.value)}
         placeholder="ghp_..."
         autoComplete="off"
-        className="mb-4 min-h-12 rounded-xl border border-slate-700 bg-slate-950 px-4 text-slate-50 outline-none focus:border-accent"
+        className="mb-4 min-h-12 rounded-2xl border border-slate-300 bg-slate-50 px-4 text-slate-900 outline-none focus:border-accent"
       />
 
-      {message && <p className="mb-4 text-sm text-slate-300">{message}</p>}
+      {message && <p className="mb-4 text-sm text-slate-600">{message}</p>}
 
       <div className="mb-3 flex gap-3">
         <button
           type="button"
           onClick={tester}
           disabled={enCours}
-          className="min-h-12 flex-1 rounded-xl border border-slate-700 text-sm text-slate-200 disabled:opacity-40"
+          className="min-h-12 flex-1 rounded-2xl border border-slate-300 text-sm text-slate-700 disabled:opacity-40"
         >
           Tester la connexion
         </button>
@@ -246,13 +246,13 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
           type="button"
           onClick={synchroniser}
           disabled={enCours}
-          className="min-h-12 flex-1 rounded-xl bg-accent text-sm font-semibold text-slate-950 disabled:opacity-40"
+          className="min-h-12 flex-1 rounded-2xl bg-accent text-sm font-semibold text-slate-950 disabled:opacity-40"
         >
           Synchroniser maintenant
         </button>
       </div>
 
-      <p className="mb-6 text-xs text-slate-500">
+      <p className="mb-6 text-xs text-slate-400">
         {etat.horodatage
           ? `Dernière synchronisation réussie : ${new Date(etat.horodatage).toLocaleString('fr-FR')}`
           : "Aucune synchronisation pour l'instant."}
@@ -261,7 +261,7 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
       <button
         type="button"
         onClick={onOuvrirSauvegardes}
-        className="mb-3 min-h-14 rounded-xl border border-slate-700 text-slate-200"
+        className="mb-3 min-h-14 rounded-2xl border border-slate-300 text-slate-700"
       >
         Sauvegardes (historique et restauration)
       </button>
@@ -269,7 +269,7 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
       <button
         type="button"
         onClick={() => telechargerExportJSON()}
-        className="min-h-14 rounded-xl border border-slate-700 text-slate-200"
+        className="min-h-14 rounded-2xl border border-slate-300 text-slate-700"
       >
         Export JSON manuel
       </button>

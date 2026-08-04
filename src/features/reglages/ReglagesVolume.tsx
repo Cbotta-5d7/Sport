@@ -19,20 +19,20 @@ export function ReglagesVolume() {
         const cible = parGroupe.get(groupe)
         if (!cible) return null
         return (
-          <div key={groupe} className="rounded-xl border border-slate-800 px-3 py-2">
-            <p className="mb-1 text-sm text-slate-100">{groupe}</p>
-            <div className="flex items-center justify-between text-xs text-slate-400">
+          <div key={groupe} className="rounded-2xl border border-slate-200 px-3 py-2">
+            <p className="mb-1 text-sm text-slate-800">{groupe}</p>
+            <div className="flex items-center justify-between text-xs text-slate-500">
               <div className="flex items-center gap-2">
                 <span>Séries/sem.</span>
-                <button type="button" onClick={() => modifier(groupe, 'seriesCibleSemaine', -1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700">−</button>
-                <span className="w-5 text-center text-slate-100">{cible.seriesCibleSemaine}</span>
-                <button type="button" onClick={() => modifier(groupe, 'seriesCibleSemaine', 1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700">+</button>
+                <button type="button" onClick={() => modifier(groupe, 'seriesCibleSemaine', -1)} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300">−</button>
+                <span className="w-5 text-center text-slate-800">{cible.seriesCibleSemaine}</span>
+                <button type="button" onClick={() => modifier(groupe, 'seriesCibleSemaine', 1)} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300">+</button>
               </div>
               <div className="flex items-center gap-2">
                 <span>Passages/sem.</span>
-                <button type="button" onClick={() => modifier(groupe, 'seancesCibleSemaine', -1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700">−</button>
-                <span className="w-5 text-center text-slate-100">{cible.seancesCibleSemaine}</span>
-                <button type="button" onClick={() => modifier(groupe, 'seancesCibleSemaine', 1)} className="flex h-7 w-7 items-center justify-center rounded-md border border-slate-700">+</button>
+                <button type="button" onClick={() => modifier(groupe, 'seancesCibleSemaine', -1)} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300">−</button>
+                <span className="w-5 text-center text-slate-800">{cible.seancesCibleSemaine}</span>
+                <button type="button" onClick={() => modifier(groupe, 'seancesCibleSemaine', 1)} className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-300">+</button>
               </div>
             </div>
           </div>

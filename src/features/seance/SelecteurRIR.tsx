@@ -13,10 +13,10 @@ export function SelecteurRIR({ valeur, onChoisir }: Props) {
           key={option.valeur}
           type="button"
           onClick={() => onChoisir(option.valeur)}
-          className={`min-h-14 flex-1 rounded-xl border-2 text-sm font-medium ${
+          className={`min-h-14 flex-1 rounded-2xl border-2 text-sm font-medium ${
             valeur === option.valeur
               ? 'border-accent bg-accent text-slate-950'
-              : 'border-slate-700 text-slate-300'
+              : 'border-slate-300 text-slate-600'
           }`}
         >
           {option.libelle}

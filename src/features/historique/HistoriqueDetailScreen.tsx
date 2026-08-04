@@ -69,7 +69,7 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
   }
 
   if (!seance) {
-    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+    return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
 
   const serieCliquee = clavier ? seriesToutes.find((s) => s.id === clavier.serieId) : null
@@ -83,17 +83,17 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
         <button
           type="button"
           onClick={onRetour}
-          className="min-h-11 min-w-11 rounded-lg border border-slate-700 text-slate-300"
+          className="min-h-11 min-w-11 rounded-xl border border-slate-300 text-slate-600"
         >
           ←
         </button>
         <div className="flex-1">
-          <h1 className="text-lg font-semibold text-slate-50">{formatDateLongueFR(new Date(seance.date))}</h1>
+          <h1 className="text-lg font-semibold text-slate-900">{formatDateLongueFR(new Date(seance.date))}</h1>
         </div>
         <button
           type="button"
           onClick={() => setConfirmationSuppression(true)}
-          className="min-h-10 rounded-lg border border-red-800 px-3 text-sm text-red-400"
+          className="min-h-10 rounded-xl border border-red-300 px-3 text-sm text-red-600"
         >
           Supprimer
         </button>
@@ -104,30 +104,30 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
         if (series.length === 0) return null
         return (
           <div key={se.id} className="mb-5">
-            <h2 className="mb-2 text-sm font-medium text-slate-300">{se.exercice.nom}</h2>
+            <h2 className="mb-2 text-sm font-medium text-slate-600">{se.exercice.nom}</h2>
             <div className="flex flex-col gap-2">
               {series.map((s) => (
-                <div key={s.id} className="rounded-xl border border-slate-800 px-3 py-2">
+                <div key={s.id} className="rounded-2xl border border-slate-200 px-3 py-2">
                   <div className="mb-2 flex items-center gap-2">
-                    <span className="text-xs text-slate-500">Série {s.numeroSerie}</span>
+                    <span className="text-xs text-slate-400">Série {s.numeroSerie}</span>
                     <button
                       type="button"
                       onClick={() => setClavier({ serieId: s.id, champ: 'poidsKg' })}
-                      className="min-h-9 flex-1 rounded-lg border border-slate-700 text-sm text-slate-100"
+                      className="min-h-9 flex-1 rounded-xl border border-slate-300 text-sm text-slate-800"
                     >
                       {formatKg(s.poidsKg)} kg
                     </button>
                     <button
                       type="button"
                       onClick={() => setClavier({ serieId: s.id, champ: 'reps' })}
-                      className="min-h-9 flex-1 rounded-lg border border-slate-700 text-sm text-slate-100"
+                      className="min-h-9 flex-1 rounded-xl border border-slate-300 text-sm text-slate-800"
                     >
                       {s.reps} reps
                     </button>
                     <button
                       type="button"
                       onClick={() => supprimerSerie(s.id)}
-                      className="min-h-9 min-w-9 text-slate-500"
+                      className="min-h-9 min-w-9 text-slate-400"
                     >
                       ✕
                     </button>
@@ -138,8 +138,8 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
                         key={t}
                         type="button"
                         onClick={() => changerType(s, t)}
-                        className={`min-h-7 shrink-0 rounded-md border px-2 text-xs ${
-                          s.type === t ? 'border-accent text-accent' : 'border-slate-700 text-slate-500'
+                        className={`min-h-7 shrink-0 rounded-lg border px-2 text-xs ${
+                          s.type === t ? 'border-accent text-accent' : 'border-slate-300 text-slate-400'
                         }`}
                       >
                         {t}
@@ -152,8 +152,8 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
                         key={o.valeur}
                         type="button"
                         onClick={() => changerRir(s, o.valeur)}
-                        className={`min-h-7 flex-1 rounded-md border text-xs ${
-                          s.rir === o.valeur ? 'border-accent text-accent' : 'border-slate-700 text-slate-500'
+                        className={`min-h-7 flex-1 rounded-lg border text-xs ${
+                          s.rir === o.valeur ? 'border-accent text-accent' : 'border-slate-300 text-slate-400'
                         }`}
                       >
                         {o.libelle}
@@ -170,26 +170,26 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
       {confirmationSuppression && (
         <div className="fixed inset-0 z-30 flex items-end justify-center bg-black/60" onClick={() => setConfirmationSuppression(false)}>
           <div
-            className="w-full max-w-md rounded-t-2xl bg-slate-900 p-5"
+            className="w-full max-w-md rounded-t-3xl bg-white p-5"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="mb-2 text-lg font-semibold text-slate-50">Supprimer cette séance ?</h2>
-            <p className="mb-4 text-sm text-slate-400">
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Supprimer cette séance ?</h2>
+            <p className="mb-4 text-sm text-slate-500">
               Toutes ses séries seront supprimées. Cette action est irréversible.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmationSuppression(false)}
-                className="min-h-14 flex-1 rounded-xl border border-slate-700 text-slate-300"
+                className="min-h-14 flex-1 rounded-2xl border border-slate-300 text-slate-600"
               >
                 Annuler
               </button>
               <button
                 type="button"
                 onClick={confirmerSuppressionSeance}
-                className="min-h-14 flex-1 rounded-xl bg-red-700 font-semibold text-slate-50"
+                className="min-h-14 flex-1 rounded-2xl bg-red-700 font-semibold text-slate-900"
               >
                 Supprimer
               </button>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
-import type { Exercice, Serie, TypeSerie } from '../../db/types'
+import type { Exercice, Serie } from '../../db/types'
 import {
   seanceExercicesAvecDetails,
   seriesPourSeanceExercice,
@@ -11,6 +11,7 @@ import {
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
 import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
 import { detecterRecord } from '../../db/records'
+import { supprimerSeance } from '../../db/historique'
 import { nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { calculerSuggestion, texteConsigne, texteCommentaire } from '../../utils/progression'
@@ -31,16 +32,16 @@ import { IndicateurSync } from '../reglages/IndicateurSync'
 interface Props {
   seanceId: number
   onTerminee: () => void
+  onAnnulee: () => void
 }
 
 interface EntreeEnCours {
   poidsKg: number
   reps: number
   rir: number | null
-  type: TypeSerie
 }
 
-export function SeanceScreen({ seanceId, onTerminee }: Props) {
+export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
   const seance = useLiveQuery(() => db.seances.get(seanceId), [seanceId])
   const seanceExercices = useLiveQuery(() => seanceExercicesAvecDetails(seanceId), [seanceId], [])
 
@@ -76,24 +77,28 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seActuel?.exerciceId])
 
-  const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0, rir: null, type: 'normale' })
+  const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0, rir: null })
+  const [entreeReduite, setEntreeReduite] = useState(false)
+  const [confirmationAnnulation, setConfirmationAnnulation] = useState(false)
+  const [annulationEnCours, setAnnulationEnCours] = useState(false)
 
   useEffect(() => {
     setCoach(null)
     setDernierRecord(null)
+    setEntreeReduite(false)
   }, [seActuel?.id])
 
   useEffect(() => {
     if (!seActuel) return
     if (seriesActuelles.length > 0) {
       const derniere = seriesActuelles[seriesActuelles.length - 1]
-      setEntree({ poidsKg: derniere.poidsKg, reps: derniere.reps, rir: null, type: 'normale' })
+      setEntree({ poidsKg: derniere.poidsKg, reps: derniere.reps, rir: null })
       return
     }
     const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
     const avantDernieresTravail = (historiqueExo[1]?.series ?? []).filter((s) => s.type !== 'échauffement')
     const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
-    setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible, rir: null, type: 'normale' })
+    setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible, rir: null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seActuel?.id, seriesActuelles.length, historiqueExo])
 
@@ -135,7 +140,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
   )
 
   if (!seance || seanceExercices.length === 0 || !seActuel) {
-    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+    return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
 
   const nbTravailGroupe = seriesGroupeActif.filter((s) => s.type !== 'échauffement').length
@@ -162,10 +167,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       await db.series.update(derniereValidee.id, { reposReelSec: Math.max(0, reposReel) })
     }
 
-    const record =
-      entree.type !== 'échauffement'
-        ? await detecterRecord(seActuel.exerciceId, entree.poidsKg, entree.reps)
-        : { poids: false, rm: false, volume: false }
+    const record = await detecterRecord(seActuel.exerciceId, entree.poidsKg, entree.reps)
     const estRecord = record.poids || record.rm || record.volume
 
     const numeroSerie = seriesActuelles.length + 1
@@ -174,7 +176,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       numeroSerie,
       poidsKg: entree.poidsKg,
       reps: entree.reps,
-      type: entree.type,
+      type: 'normale',
       rir: estDerniereSerie ? entree.rir : null,
       reposReelSec: null,
       validee: true,
@@ -343,39 +345,54 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
     onTerminee()
   }
 
+  async function confirmerAnnulation() {
+    setAnnulationEnCours(true)
+    await supprimerSeance(seanceId)
+    onAnnulee()
+  }
+
   return (
-    <div className="flex min-h-dvh flex-col" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      <header className="flex flex-col gap-1 border-b border-slate-800 bg-slate-950 px-4 py-2">
+    <div className="flex h-dvh flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold text-slate-50">{formatDuree(dureeSec)}</span>
+          <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>
           <div className="flex items-center gap-2">
             <IndicateurSync />
             <button
               type="button"
               onClick={() => setModaleNote(true)}
-              className="min-h-10 rounded-lg border border-slate-700 px-3 text-sm text-slate-300"
+              className="min-h-10 rounded-xl border border-slate-300 px-3 text-sm text-slate-600"
             >
               Note
             </button>
             <button
               type="button"
               onClick={demanderTerminer}
-              className="min-h-10 rounded-lg bg-accent px-4 text-sm font-semibold text-slate-950"
+              className="min-h-10 rounded-xl bg-accent px-4 text-sm font-semibold text-white"
             >
               Terminer
             </button>
           </div>
         </div>
-        <p className="text-sm text-slate-400">
-          {seActuel.exercice.groupeMusculaire} : {idsGroupeActif.length} exercices, {nbTravailGroupe}/
-          {nbPrevuGroupe} séries
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-slate-500">
+            {seActuel.exercice.groupeMusculaire} : {idsGroupeActif.length} exercices, {nbTravailGroupe}/
+            {nbPrevuGroupe} séries
+          </p>
+          <button
+            type="button"
+            onClick={() => setConfirmationAnnulation(true)}
+            className="min-h-8 rounded-lg px-2 text-xs text-slate-400"
+          >
+            Annuler la séance
+          </button>
+        </div>
         {cibleGroupeActif && (
           <div>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-400">
               Semaine : {efficacesSemaineGroupe}/{cibleGroupeActif.seriesCibleSemaine} séries efficaces
             </p>
-            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full bg-accent"
                 style={{
@@ -387,7 +404,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         )}
       </header>
 
-      <div className="flex gap-2 overflow-x-auto border-b border-slate-800 px-2 py-2">
+      <div className="flex shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-white px-2 py-2">
         {seanceExercices.map((se, i) => (
           <button
             key={se.id}
@@ -396,8 +413,8 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
             onPointerDown={() => demarrerAppuiLong(i)}
             onPointerUp={annulerAppuiLong}
             onPointerLeave={annulerAppuiLong}
-            className={`min-h-11 shrink-0 rounded-lg border px-3 text-sm select-none ${
-              i === indexActif ? 'border-accent bg-slate-900 text-accent' : 'border-slate-800 text-slate-400'
+            className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm select-none ${
+              i === indexActif ? 'border-accent bg-orange-50 text-accent' : 'border-slate-200 text-slate-500'
             } ${se.statut === 'fait' ? 'opacity-60' : ''} ${se.statut === 'passe' ? 'opacity-30 line-through' : ''}`}
           >
             {se.exercice.nom}
@@ -406,15 +423,14 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         <button
           type="button"
           onClick={() => setModaleChoix('ajouter')}
-          className="min-h-11 shrink-0 rounded-lg border border-dashed border-slate-700 px-3 text-sm text-slate-400"
+          className="min-h-11 shrink-0 rounded-xl border border-dashed border-slate-300 px-3 text-sm text-slate-500"
         >
           + Exercice
         </button>
       </div>
 
       <div
-        className="flex-1 overflow-y-auto px-4 py-4"
-        style={{ paddingBottom: '20rem' }}
+        className="min-h-0 flex-1 overflow-y-auto px-4 py-4"
         onTouchStart={(e) => {
           touchStartX.current = e.touches[0].clientX
         }}
@@ -426,9 +442,9 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
           touchStartX.current = null
         }}
       >
-        <p className="mb-2 text-3xl font-bold text-slate-50">{texteConsigne(suggestion)}</p>
+        <p className="mb-2 text-3xl font-bold text-slate-900">{texteConsigne(suggestion)}</p>
         {suggestion.regle !== 'premiere_fois' && (
-          <p className="mb-4 text-sm text-slate-400">{texteCommentaire(suggestion, dernieresTravail)}</p>
+          <p className="mb-4 text-sm text-slate-500">{texteCommentaire(suggestion, dernieresTravail)}</p>
         )}
 
         <div className="mb-4">
@@ -444,8 +460,8 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         </div>
 
         {dernierRecord && (
-          <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-600 bg-amber-950/40 px-3 py-2">
-            <p className="text-sm text-amber-300">🏆 {dernierRecord}</p>
+          <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-300 bg-amber-50 px-3 py-2">
+            <p className="text-sm text-amber-700">🏆 {dernierRecord}</p>
             <button type="button" onClick={() => setDernierRecord(null)} className="min-h-8 min-w-8 text-amber-500">
               ✕
             </button>
@@ -453,15 +469,15 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         )}
 
         {coach && (
-          <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-sky-700 bg-sky-950/40 px-3 py-2">
-            <p className="text-sm text-sky-300">{coach.texte}</p>
+          <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-sky-300 bg-sky-50 px-3 py-2">
+            <p className="text-sm text-sky-700">{coach.texte}</p>
             <button
               type="button"
               onClick={() => {
                 coach.action()
                 setCoach(null)
               }}
-              className="min-h-10 shrink-0 rounded-lg bg-sky-800 px-3 text-sm text-slate-100"
+              className="min-h-10 shrink-0 rounded-xl bg-sky-700 px-3 text-sm text-white"
             >
               Appliquer
             </button>
@@ -473,16 +489,15 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
             {seriesActuelles.map((s) => (
               <div
                 key={s.id}
-                className="flex items-center justify-between rounded-lg border border-slate-800 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               >
-                <span className="text-slate-300">
+                <span className="text-slate-600">
                   Série {s.numeroSerie} · {formatKg(s.poidsKg)} kg x {s.reps}
-                  {s.type !== 'normale' ? ` · ${s.type}` : ''}
                 </span>
                 <button
                   type="button"
                   onClick={() => db.series.delete(s.id)}
-                  className="min-h-8 min-w-8 text-slate-500"
+                  className="min-h-8 min-w-8 text-slate-400"
                 >
                   ✕
                 </button>
@@ -495,36 +510,49 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
           <button
             type="button"
             onClick={ajouterUneSerie}
-            className="min-h-11 flex-1 rounded-lg border border-slate-700 text-sm text-slate-300"
+            className="min-h-11 flex-1 rounded-xl border border-slate-300 text-sm text-slate-600"
           >
             + Ajouter une série
           </button>
           <button
             type="button"
             onClick={passerExercice}
-            className="min-h-11 flex-1 rounded-lg border border-slate-700 text-sm text-slate-300"
+            className="min-h-11 flex-1 rounded-xl border border-slate-300 text-sm text-slate-600"
           >
             Passer cet exercice
           </button>
         </div>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-10 flex flex-col">
+      <div className="shrink-0">
         <MinuteurRepos />
-        <EntreeSerie
-          numeroSerie={seriesActuelles.length + 1}
-          poidsKg={entree.poidsKg}
-          reps={entree.reps}
-          incrementKg={seActuel.exercice.incrementKg}
-          rir={entree.rir}
-          type={entree.type}
-          estDerniereSerie={estDerniereSerie}
-          onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
-          onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
-          onChoisirRir={(rir) => setEntree((e) => ({ ...e, rir }))}
-          onChangerType={(type) => setEntree((e) => ({ ...e, type }))}
-          onValider={validerSerie}
-        />
+        <button
+          type="button"
+          onClick={() => setEntreeReduite((r) => !r)}
+          className="flex w-full items-center justify-center gap-2 border-t border-slate-200 bg-white py-1.5"
+          style={{ paddingBottom: entreeReduite ? 'calc(env(safe-area-inset-bottom) + 0.375rem)' : undefined }}
+        >
+          <span className="h-1 w-10 rounded-full bg-slate-300" />
+          {entreeReduite && (
+            <span className="text-xs text-slate-500">
+              Série {seriesActuelles.length + 1} · {formatKg(entree.poidsKg)} kg x {entree.reps} · toucher pour agrandir
+            </span>
+          )}
+        </button>
+        {!entreeReduite && (
+          <EntreeSerie
+            numeroSerie={seriesActuelles.length + 1}
+            poidsKg={entree.poidsKg}
+            reps={entree.reps}
+            incrementKg={seActuel.exercice.incrementKg}
+            rir={entree.rir}
+            estDerniereSerie={estDerniereSerie}
+            onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
+            onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
+            onChoisirRir={(rir) => setEntree((e) => ({ ...e, rir }))}
+            onValider={validerSerie}
+          />
+        )}
       </div>
 
       {modaleChoix && (
@@ -552,6 +580,39 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
 
       {alertes && (
         <AlerteFinSeance alertes={alertes} onRetourSeance={() => setAlertes(null)} onTerminer={finaliser} />
+      )}
+
+      {confirmationAnnulation && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60" onClick={() => setConfirmationAnnulation(false)}>
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-5"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Annuler cette séance ?</h2>
+            <p className="mb-4 text-sm text-slate-500">
+              Toutes les séries saisies depuis le lancement seront effacées. Ton historique des séances
+              précédentes n'est pas concerné.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmationAnnulation(false)}
+                className="min-h-14 flex-1 rounded-2xl border border-slate-300 text-slate-600"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                onClick={confirmerAnnulation}
+                disabled={annulationEnCours}
+                className="min-h-14 flex-1 rounded-2xl bg-red-600 font-semibold text-white disabled:opacity-40"
+              >
+                Annuler la séance
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

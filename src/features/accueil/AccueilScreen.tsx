@@ -20,10 +20,10 @@ interface Props {
 }
 
 const CLASSES_COULEUR_VOLUME: Record<string, string> = {
-  vert: 'border-emerald-700 bg-emerald-950 text-emerald-300',
-  orange: 'border-amber-700 bg-amber-950 text-amber-300',
-  rouge: 'border-red-700 bg-red-950 text-red-300',
-  violet: 'border-violet-700 bg-violet-950 text-violet-300',
+  vert: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+  orange: 'border-amber-300 bg-amber-50 text-amber-700',
+  rouge: 'border-red-300 bg-red-50 text-red-700',
+  violet: 'border-violet-300 bg-violet-50 text-violet-700',
 }
 
 export function AccueilScreen({
@@ -89,7 +89,7 @@ export function AccueilScreen({
           <button
             type="button"
             onClick={onOuvrirReglages}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-700 text-slate-300"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
             aria-label="Réglages"
           >
             ⚙
@@ -98,7 +98,7 @@ export function AccueilScreen({
       </header>
 
       {tableau && (
-        <p className="mb-3 text-sm text-slate-400">
+        <p className="mb-3 text-sm text-slate-500">
           {formatPlageSemaineFR(maintenant)}, {nomJourSemaineFR(maintenant)}, J+{jourSemaineIndex(maintenant)}.{' '}
           {tableau.seancesFaites} séance{tableau.seancesFaites > 1 ? 's' : ''} sur {tableau.seancesCible}.
         </p>
@@ -107,10 +107,10 @@ export function AccueilScreen({
       <KpiBandeau />
 
       {tableau && (
-        <div className="mb-4 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
-          <p className="text-sm text-slate-200">{phraseSynthese(tableau)}</p>
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
+          <p className="text-sm text-slate-700">{phraseSynthese(tableau)}</p>
           {alerteImpossible(tableau) && (
-            <p className="mt-2 text-sm text-amber-400">{alerteImpossible(tableau)}</p>
+            <p className="mt-2 text-sm text-amber-600">{alerteImpossible(tableau)}</p>
           )}
         </div>
       )}
@@ -118,29 +118,29 @@ export function AccueilScreen({
       {maintenant.getDay() === 0 && <RecapClotureSemaine />}
 
       <div className="mb-4 flex gap-2 overflow-x-auto">
-        <button type="button" onClick={onOuvrirExercices} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+        <button type="button" onClick={onOuvrirExercices} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Exercices
         </button>
-        <button type="button" onClick={onOuvrirReperes} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+        <button type="button" onClick={onOuvrirReperes} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           ★ Repères
         </button>
-        <button type="button" onClick={onOuvrirPoids} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+        <button type="button" onClick={onOuvrirPoids} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Poids de corps
         </button>
-        <button type="button" onClick={onOuvrirGlobale} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+        <button type="button" onClick={onOuvrirGlobale} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Vue globale
         </button>
-        <button type="button" onClick={onOuvrirHistorique} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+        <button type="button" onClick={onOuvrirHistorique} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Historique
         </button>
       </div>
 
       <div className="mb-2 flex items-center justify-between">
-        <h2 className="text-sm font-medium text-slate-400">Groupes musculaires</h2>
+        <h2 className="text-sm font-medium text-slate-500">Groupes musculaires</h2>
         <button
           type="button"
           onClick={() => setTri((t) => !t)}
-          className="min-h-9 rounded-lg border border-slate-700 px-3 text-xs text-slate-300"
+          className="min-h-9 rounded-xl border border-slate-300 px-3 text-xs text-slate-600"
         >
           Trier par délai
         </button>
@@ -149,7 +149,7 @@ export function AccueilScreen({
       <div className="flex flex-col gap-3">
         {etatsTries.map((etat) => {
           const stat = statsParGroupe.get(etat.groupe)
-          const couleur = stat ? CLASSES_COULEUR_VOLUME[stat.couleur] : 'border-slate-700 bg-slate-900 text-slate-300'
+          const couleur = stat ? CLASSES_COULEUR_VOLUME[stat.couleur] : 'border-slate-300 bg-white text-slate-600'
           const selectionne = selection.includes(etat.groupe)
           const reste = stat ? Math.max(0, stat.cibleSeries - stat.seriesEfficaces) : null
           return (
@@ -159,12 +159,12 @@ export function AccueilScreen({
               tabIndex={0}
               onClick={() => basculer(etat.groupe)}
               onKeyDown={(e) => e.key === 'Enter' && basculer(etat.groupe)}
-              className={`flex min-h-14 cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition ${couleur} ${
+              className={`flex min-h-14 cursor-pointer items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition ${couleur} ${
                 selectionne ? 'ring-2 ring-accent' : ''
               }`}
             >
               <div>
-                <p className="text-lg font-medium text-slate-50">{etat.groupe}</p>
+                <p className="text-lg font-medium text-slate-900">{etat.groupe}</p>
                 <p className="text-sm opacity-80">
                   {etat.joursDepuisDerniere === null
                     ? 'Jamais fait'
@@ -191,7 +191,7 @@ export function AccueilScreen({
                     e.stopPropagation()
                     onOuvrirGroupe(etat.groupe)
                   }}
-                  className="flex min-h-9 min-w-9 items-center justify-center rounded-lg border border-current text-xs opacity-70"
+                  className="flex min-h-9 min-w-9 items-center justify-center rounded-xl border border-current text-xs opacity-70"
                   aria-label={`Statistiques ${etat.groupe}`}
                 >
                   📈
@@ -210,7 +210,7 @@ export function AccueilScreen({
           <button
             type="button"
             onClick={() => onContinuer(selection)}
-            className="min-h-14 w-full max-w-md rounded-xl bg-accent px-6 text-lg font-semibold text-slate-950 shadow-lg"
+            className="min-h-14 w-full max-w-md rounded-2xl bg-accent px-6 text-lg font-semibold text-slate-950 shadow-lg"
           >
             Voir les exercices ({selection.length})
           </button>

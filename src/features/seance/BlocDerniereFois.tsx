@@ -14,9 +14,9 @@ type Mode = 'cache' | 'resume' | 'historique'
 
 function Fleche({ actuel, precedent }: { actuel?: number; precedent: number }) {
   if (actuel === undefined) return null
-  if (actuel > precedent) return <span className="text-emerald-400">▲</span>
-  if (actuel < precedent) return <span className="text-red-400">▼</span>
-  return <span className="text-slate-500">─</span>
+  if (actuel > precedent) return <span className="text-emerald-600">▲</span>
+  if (actuel < precedent) return <span className="text-red-600">▼</span>
+  return <span className="text-slate-400">─</span>
 }
 
 export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuelles }: Props) {
@@ -78,7 +78,7 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
   if (aHistorique === null) return null
 
   if (!aHistorique) {
-    return <p className="text-sm text-slate-500">Première fois sur cet exercice.</p>
+    return <p className="text-sm text-slate-400">Première fois sur cet exercice.</p>
   }
 
   return (
@@ -90,9 +90,9 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
       </button>
 
       {mode === 'resume' && dernieresSeries && (
-        <div className="mt-2 overflow-hidden rounded-xl border border-slate-800">
+        <div className="mt-2 max-h-48 overflow-y-auto overscroll-contain rounded-2xl border border-slate-200">
           {dateDerniere && (
-            <p className="border-b border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-500">
+            <p className="sticky top-0 border-b border-slate-200 bg-white shadow-sm px-3 py-1.5 text-xs text-slate-400">
               {formatDateLongueFR(new Date(dateDerniere))}
             </p>
           )}
@@ -101,9 +101,9 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
               {dernieresSeries.map((s, i) => {
                 const actuelle = estReference ? undefined : seriesActuelles[i]
                 return (
-                  <tr key={s.id} className="border-b border-slate-800 last:border-0">
-                    <td className="px-3 py-2 text-slate-400">Série {s.numeroSerie}</td>
-                    <td className="px-3 py-2 text-slate-100">
+                  <tr key={s.id} className="border-b border-slate-200 last:border-0">
+                    <td className="px-3 py-2 text-slate-500">Série {s.numeroSerie}</td>
+                    <td className="px-3 py-2 text-slate-800">
                       {formatKg(s.poidsKg)} kg x {s.reps}
                     </td>
                     <td className="px-3 py-2 text-right">
@@ -121,11 +121,11 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
       )}
 
       {mode === 'historique' && historique && (
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="mt-2 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-2 pr-0.5">
           {historique.map((h, i) => (
-            <div key={i} className="rounded-xl border border-slate-800 px-3 py-2">
-              <p className="mb-1 text-xs text-slate-500">{formatDateLongueFR(new Date(h.seance.date))}</p>
-              <p className="text-sm text-slate-100">
+            <div key={i} className="rounded-2xl border border-slate-200 px-3 py-2">
+              <p className="mb-1 text-xs text-slate-400">{formatDateLongueFR(new Date(h.seance.date))}</p>
+              <p className="text-sm text-slate-800">
                 {h.series.map((s) => `${formatKg(s.poidsKg)}x${s.reps}`).join(', ')}
               </p>
             </div>

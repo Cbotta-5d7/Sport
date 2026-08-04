@@ -76,12 +76,12 @@ export function KpiBandeau() {
   return (
     <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
       {tuiles.map((t) => (
-        <div key={t.titre} className="min-w-[7.5rem] shrink-0 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2">
-          <p className="text-xs text-slate-500">{t.titre}</p>
-          <p className="text-lg font-semibold text-slate-50">
-            {t.valeur} {t.fleche && <span className="text-sm text-slate-400">{t.fleche}</span>}
+        <div key={t.titre} className="min-w-[7.5rem] shrink-0 rounded-2xl border border-slate-200 bg-white shadow-sm px-3 py-2">
+          <p className="text-xs text-slate-400">{t.titre}</p>
+          <p className="text-lg font-semibold text-slate-900">
+            {t.valeur} {t.fleche && <span className="text-sm text-slate-500">{t.fleche}</span>}
           </p>
-          {t.sousTitre && <p className="text-[10px] text-slate-600">{t.sousTitre}</p>}
+          {t.sousTitre && <p className="text-[10px] text-slate-400">{t.sousTitre}</p>}
         </div>
       ))}
     </div>

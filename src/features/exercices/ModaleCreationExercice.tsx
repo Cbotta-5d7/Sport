@@ -33,25 +33,25 @@ export function ModaleCreationExercice({ groupe, onCree, onFermer }: Props) {
   return (
     <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/60" onClick={onFermer}>
       <div
-        className="w-full max-w-md rounded-t-2xl bg-slate-900 p-5"
+        className="w-full max-w-md rounded-t-3xl bg-white p-5"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-1 text-lg font-semibold text-slate-50">Nouvel exercice</h2>
-        <p className="mb-4 text-sm text-slate-400">Groupe : {groupe}</p>
+        <h2 className="mb-1 text-lg font-semibold text-slate-900">Nouvel exercice</h2>
+        <p className="mb-4 text-sm text-slate-500">Groupe : {groupe}</p>
         <input
           autoFocus
           type="text"
           value={nom}
           onChange={(e) => setNom(e.target.value)}
           placeholder="Nom de l'exercice"
-          className="mb-4 min-h-14 w-full rounded-xl border border-slate-700 bg-slate-950 px-4 text-lg text-slate-50 outline-none focus:border-accent"
+          className="mb-4 min-h-14 w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 text-lg text-slate-900 outline-none focus:border-accent"
         />
         <div className="flex gap-3">
           <button
             type="button"
             onClick={onFermer}
-            className="min-h-14 flex-1 rounded-xl border border-slate-700 text-slate-300"
+            className="min-h-14 flex-1 rounded-2xl border border-slate-300 text-slate-600"
           >
             Annuler
           </button>
@@ -59,7 +59,7 @@ export function ModaleCreationExercice({ groupe, onCree, onFermer }: Props) {
             type="button"
             onClick={creer}
             disabled={!nom.trim() || enCours}
-            className="min-h-14 flex-1 rounded-xl bg-accent font-semibold text-slate-950 disabled:opacity-40"
+            className="min-h-14 flex-1 rounded-2xl bg-accent font-semibold text-slate-950 disabled:opacity-40"
           >
             Créer
           </button>

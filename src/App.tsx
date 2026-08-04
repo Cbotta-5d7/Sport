@@ -38,7 +38,7 @@ const HistoriqueDetailScreen = lazy(() =>
 )
 
 function ChargementEcran() {
-  return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+  return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
 }
 
 type Vue =
@@ -78,14 +78,14 @@ function App() {
 
   if (erreur) {
     return (
-      <div className="flex min-h-dvh items-center justify-center px-6 text-center text-red-400">
+      <div className="flex min-h-dvh items-center justify-center px-6 text-center text-red-600">
         Erreur d'initialisation : {erreur}
       </div>
     )
   }
 
   if (vue.nom === 'chargement') {
-    return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+    return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
 
   if (vue.nom === 'accueil') {
@@ -118,6 +118,7 @@ function App() {
       <SeanceScreen
         seanceId={vue.seanceId}
         onTerminee={() => setVue({ nom: 'finSeance', seanceId: vue.seanceId })}
+        onAnnulee={() => setVue({ nom: 'accueil' })}
       />
     )
   }

@@ -36,7 +36,7 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
         <button
           type="button"
           onClick={onRetour}
-          className="min-h-11 min-w-11 rounded-lg border border-slate-700 text-slate-300"
+          className="min-h-11 min-w-11 rounded-xl border border-slate-300 text-slate-600"
         >
           ←
         </button>
@@ -44,7 +44,7 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
         <button
           type="button"
           onClick={() => setCreationOuverte(true)}
-          className="min-h-10 rounded-lg border border-slate-700 px-3 text-sm text-accent"
+          className="min-h-10 rounded-xl border border-slate-300 px-3 text-sm text-accent"
         >
           + Nouvel exercice
         </button>
@@ -55,14 +55,14 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
         value={recherche}
         onChange={(e) => setRecherche(e.target.value)}
         placeholder="Rechercher..."
-        className="mb-3 min-h-12 rounded-xl border border-slate-700 bg-slate-950 px-4 text-slate-50 outline-none focus:border-accent"
+        className="mb-3 min-h-12 rounded-2xl border border-slate-300 bg-slate-50 px-4 text-slate-900 outline-none focus:border-accent"
       />
 
       <div className="mb-4 flex gap-2 overflow-x-auto">
         <button
           type="button"
           onClick={() => setFiltreGroupe(null)}
-          className={`min-h-9 shrink-0 rounded-lg border px-3 text-sm ${!filtreGroupe ? 'border-accent text-accent' : 'border-slate-700 text-slate-400'}`}
+          className={`min-h-9 shrink-0 rounded-xl border px-3 text-sm ${!filtreGroupe ? 'border-accent text-accent' : 'border-slate-300 text-slate-500'}`}
         >
           Tous
         </button>
@@ -71,7 +71,7 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
             key={g}
             type="button"
             onClick={() => setFiltreGroupe(g)}
-            className={`min-h-9 shrink-0 rounded-lg border px-3 text-sm ${filtreGroupe === g ? 'border-accent text-accent' : 'border-slate-700 text-slate-400'}`}
+            className={`min-h-9 shrink-0 rounded-xl border px-3 text-sm ${filtreGroupe === g ? 'border-accent text-accent' : 'border-slate-300 text-slate-500'}`}
           >
             {g}
           </button>
@@ -84,16 +84,16 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
             key={e.id}
             type="button"
             onClick={() => onOuvrirExercice(e.id)}
-            className="flex min-h-14 items-center justify-between rounded-xl border border-slate-800 px-4 text-left"
+            className="flex min-h-14 items-center justify-between rounded-2xl border border-slate-200 px-4 text-left"
           >
-            <span className="text-slate-100">
-              {e.estRepere && <span className="mr-1 text-amber-400">★</span>}
+            <span className="text-slate-800">
+              {e.estRepere && <span className="mr-1 text-amber-600">★</span>}
               {e.nom}
             </span>
-            <span className="text-xs text-slate-500">{e.groupeMusculaire}</span>
+            <span className="text-xs text-slate-400">{e.groupeMusculaire}</span>
           </button>
         ))}
-        {filtres.length === 0 && <p className="text-sm text-slate-500">Aucun exercice.</p>}
+        {filtres.length === 0 && <p className="text-sm text-slate-400">Aucun exercice.</p>}
       </div>
 
       {creationOuverte && (

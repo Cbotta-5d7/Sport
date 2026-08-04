@@ -24,18 +24,18 @@ export function MinuteurRepos() {
   }
 
   return (
-    <div className="flex items-center justify-center gap-4 border-t border-slate-800 bg-slate-950/95 px-4 py-3 backdrop-blur">
+    <div className="flex items-center justify-center gap-4 border-t border-slate-200 bg-slate-50/95 px-4 py-3 backdrop-blur">
       <button
         type="button"
         onClick={() => ajusterMinuteur(-15)}
-        className="flex min-h-14 min-w-14 items-center justify-center rounded-full border border-slate-700 text-slate-200"
+        className="flex min-h-14 min-w-14 items-center justify-center rounded-full border border-slate-300 text-slate-700"
       >
         −15s
       </button>
 
       <div className="relative flex h-16 w-16 items-center justify-center">
         <svg viewBox="0 0 64 64" className="h-16 w-16 -rotate-90">
-          <circle cx="32" cy="32" r={RAYON} fill="none" stroke="#1e293b" strokeWidth="6" />
+          <circle cx="32" cy="32" r={RAYON} fill="none" stroke="#e2e8f0" strokeWidth="6" />
           <circle
             cx="32"
             cy="32"
@@ -48,7 +48,7 @@ export function MinuteurRepos() {
             strokeDashoffset={offset}
           />
         </svg>
-        <span className="absolute text-sm font-semibold text-slate-100">
+        <span className="absolute text-sm font-semibold text-slate-800">
           {minutes}:{String(secondes).padStart(2, '0')}
         </span>
       </div>
@@ -56,7 +56,7 @@ export function MinuteurRepos() {
       <button
         type="button"
         onClick={() => ajusterMinuteur(15)}
-        className="flex min-h-14 min-w-14 items-center justify-center rounded-full border border-slate-700 text-slate-200"
+        className="flex min-h-14 min-w-14 items-center justify-center rounded-full border border-slate-300 text-slate-700"
       >
         +15s
       </button>
@@ -64,7 +64,7 @@ export function MinuteurRepos() {
       <button
         type="button"
         onClick={passer}
-        className="min-h-14 rounded-xl bg-slate-800 px-4 text-slate-200"
+        className="min-h-14 rounded-2xl bg-slate-100 px-4 text-slate-700"
       >
         Passer
       </button>

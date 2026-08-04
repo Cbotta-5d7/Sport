@@ -138,7 +138,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         <button
           type="button"
           onClick={onRetour}
-          className="min-h-11 min-w-11 rounded-lg border border-slate-700 text-slate-300"
+          className="min-h-11 min-w-11 rounded-xl border border-slate-300 text-slate-600"
         >
           ←
         </button>
@@ -154,24 +154,24 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         return (
           <section key={groupe} className="mb-6">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-lg font-medium text-slate-100">{groupe}</h2>
+              <h2 className="text-lg font-medium text-slate-800">{groupe}</h2>
               <button
                 type="button"
                 onClick={() => setGroupePourCreation(groupe)}
-                className="min-h-10 rounded-lg border border-slate-700 px-3 text-sm text-accent"
+                className="min-h-10 rounded-xl border border-slate-300 px-3 text-sm text-accent"
               >
                 + Nouvel exercice
               </button>
             </div>
 
-            <p className="mb-2 text-sm text-slate-400">
+            <p className="mb-2 text-sm text-slate-500">
               {restant > 0
                 ? `Il te reste ${restant} séries de ${groupe.toLowerCase()} cette semaine`
                 : `Cible ${groupe.toLowerCase()} déjà atteinte cette semaine`}
             </p>
 
             {depasseVingt && (
-              <p className="mb-2 rounded-lg border border-violet-700 bg-violet-950 px-3 py-2 text-sm text-violet-300">
+              <p className="mb-2 rounded-xl border border-violet-300 bg-violet-50 px-3 py-2 text-sm text-violet-700">
                 Attention, le total de la semaine sur {groupe.toLowerCase()} dépasserait 20 séries.
               </p>
             )}
@@ -182,8 +182,8 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
                 return (
                   <div
                     key={e.id}
-                    className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 ${
-                      sel?.coche ? 'border-accent bg-slate-900' : 'border-slate-800 bg-slate-950'
+                    className={`flex min-h-14 items-center gap-3 rounded-2xl border px-3 py-2 ${
+                      sel?.coche ? 'border-accent bg-white' : 'border-slate-200 bg-slate-50'
                     }`}
                   >
                     <button
@@ -192,13 +192,13 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
                       className="flex min-h-10 flex-1 items-center gap-3 text-left"
                     >
                       <span
-                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 ${
-                          sel?.coche ? 'border-accent bg-accent text-slate-950' : 'border-slate-600'
+                        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border-2 ${
+                          sel?.coche ? 'border-accent bg-accent text-slate-950' : 'border-slate-300'
                         }`}
                       >
                         {sel?.coche ? '✓' : ''}
                       </span>
-                      <span className="text-slate-100">{e.nom}</span>
+                      <span className="text-slate-800">{e.nom}</span>
                     </button>
 
                     {sel?.coche && (
@@ -206,15 +206,15 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
                         <button
                           type="button"
                           onClick={() => changerSeries(e.id!, -1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-lg text-slate-300"
+                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-lg text-slate-600"
                         >
                           −
                         </button>
-                        <span className="w-6 text-center text-slate-100">{sel.seriesPrevues}</span>
+                        <span className="w-6 text-center text-slate-800">{sel.seriesPrevues}</span>
                         <button
                           type="button"
                           onClick={() => changerSeries(e.id!, 1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-700 text-lg text-slate-300"
+                          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 text-lg text-slate-600"
                         >
                           +
                         </button>
@@ -244,7 +244,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
           type="button"
           onClick={demarrer}
           disabled={exercicesCoches.length === 0 || demarrageEnCours}
-          className="min-h-14 w-full max-w-md rounded-xl bg-accent px-6 text-lg font-semibold text-slate-950 shadow-lg disabled:opacity-40"
+          className="min-h-14 w-full max-w-md rounded-2xl bg-accent px-6 text-lg font-semibold text-slate-950 shadow-lg disabled:opacity-40"
         >
           C'est parti
         </button>
