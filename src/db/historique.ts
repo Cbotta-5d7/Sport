@@ -1,7 +1,7 @@
 import { db } from './schema'
 import type { Seance } from './types'
 import { tonnageTotal, estSerieDeTravail } from '../utils/calculs'
-import { seanceExercicesAvecDetails } from './queries'
+import { seanceExercicesAvecDetails, seanceEnCours } from './queries'
 
 export interface SeanceHistorique {
   seance: Seance
@@ -29,6 +29,20 @@ export async function listerHistoriqueSeances(limite = 200): Promise<SeanceHisto
     })
   }
   return resultats
+}
+
+export async function reprendreSeance(seanceId: number): Promise<void> {
+  const enCours = await seanceEnCours()
+  if (enCours && enCours.id !== seanceId) {
+    throw new Error('Une autre séance est déjà en cours. Termine-la ou annule-la avant de reprendre celle-ci.')
+  }
+  const seance = await db.seances.get(seanceId)
+  if (!seance) throw new Error('Séance introuvable.')
+  await db.seances.update(seanceId, {
+    statut: 'en_cours',
+    dateFin: null,
+    dateDebut: new Date(Date.now() - seance.dureeSec * 1000).toISOString(),
+  })
 }
 
 export async function supprimerSeance(seanceId: number): Promise<void> {

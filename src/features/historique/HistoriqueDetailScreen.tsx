@@ -3,7 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import type { Serie, TypeSerie } from '../../db/types'
 import { seanceExercicesAvecDetails, type SeanceExerciceAvecExercice } from '../../db/queries'
-import { supprimerSeance } from '../../db/historique'
+import { supprimerSeance, reprendreSeance } from '../../db/historique'
 import { formatDateLongueFR } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { OPTIONS_RIR } from '../../db/rir'
@@ -15,6 +15,7 @@ interface Props {
   seanceId: number
   onRetour: () => void
   onSupprimee: () => void
+  onReprise: () => void
 }
 
 interface ClavierCible {
@@ -22,10 +23,12 @@ interface ClavierCible {
   champ: 'poidsKg' | 'reps'
 }
 
-export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Props) {
+export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onReprise }: Props) {
   const [seanceExercices, setSeanceExercices] = useState<SeanceExerciceAvecExercice[]>([])
   const [confirmationSuppression, setConfirmationSuppression] = useState(false)
   const [clavier, setClavier] = useState<ClavierCible | null>(null)
+  const [erreurReprise, setErreurReprise] = useState<string | null>(null)
+  const [repriseEnCours, setRepriseEnCours] = useState(false)
 
   const seance = useLiveQuery(() => db.seances.get(seanceId), [seanceId])
   const seriesToutes = useLiveQuery(
@@ -68,6 +71,19 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
     onSupprimee()
   }
 
+  async function reprendre() {
+    if (repriseEnCours) return
+    setRepriseEnCours(true)
+    setErreurReprise(null)
+    try {
+      await reprendreSeance(seanceId)
+      onReprise()
+    } catch (e) {
+      setErreurReprise(e instanceof Error ? e.message : String(e))
+      setRepriseEnCours(false)
+    }
+  }
+
   if (!seance) {
     return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
@@ -92,12 +108,29 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee }: Prop
         </div>
         <button
           type="button"
+          onClick={reprendre}
+          disabled={repriseEnCours}
+          className="min-h-10 rounded-xl border border-accent px-3 text-sm text-accent disabled:opacity-40"
+        >
+          ↻ Reprendre
+        </button>
+        <button
+          type="button"
           onClick={() => setConfirmationSuppression(true)}
           className="min-h-10 rounded-xl border border-red-300 px-3 text-sm text-red-600"
         >
           Supprimer
         </button>
       </header>
+
+      {erreurReprise && (
+        <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-red-300 bg-red-50 px-3 py-2">
+          <p className="text-sm text-red-700">{erreurReprise}</p>
+          <button type="button" onClick={() => setErreurReprise(null)} className="min-h-8 min-w-8 text-red-500">
+            ✕
+          </button>
+        </div>
+      )}
 
       {seanceExercices.map((se) => {
         const series = seriesToutes.filter((s) => s.seanceExerciceId === se.id).sort((a, b) => a.numeroSerie - b.numeroSerie)

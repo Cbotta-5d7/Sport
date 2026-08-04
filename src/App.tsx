@@ -223,6 +223,7 @@ function App() {
         seanceId={vue.seanceId}
         onRetour={() => setVue({ nom: 'historique' })}
         onSupprimee={() => setVue({ nom: 'historique' })}
+        onReprise={() => setVue({ nom: 'seance', seanceId: vue.seanceId })}
       />
     </Suspense>
   )
