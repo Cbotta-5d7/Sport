@@ -3,16 +3,15 @@ import type { CibleVolume, Exercice } from './types'
 
 type NouvelExercice = Omit<Exercice, 'id'>
 
-const POLY = { min: 8, max: 12, repos: 150 }
-const ISOLATION = { min: 10, max: 15, repos: 90 }
-const MOLLETS = { min: 12, max: 20, repos: 60 }
-
 function exo(
   nom: string,
   groupeMusculaire: Exercice['groupeMusculaire'],
   typeCharge: Exercice['typeCharge'],
   incrementKg: Exercice['incrementKg'],
-  fourchette: { min: number; max: number; repos: number },
+  repsCibleMin: number,
+  repsCibleMax: number,
+  reposDefautSec: number,
+  seriesCibleDefaut: number,
   estRepere = false,
 ): NouvelExercice {
   return {
@@ -20,9 +19,10 @@ function exo(
     groupeMusculaire,
     typeCharge,
     incrementKg,
-    reposDefautSec: fourchette.repos,
-    repsCibleMin: fourchette.min,
-    repsCibleMax: fourchette.max,
+    reposDefautSec,
+    repsCibleMin,
+    repsCibleMax,
+    seriesCibleDefaut,
     estRepere,
     archive: false,
     notes: '',
@@ -30,72 +30,55 @@ function exo(
 }
 
 export const EXERCICES_DEPART: NouvelExercice[] = [
-  // Pectoraux
-  exo('Développé couché', 'Pectoraux', 'barre', 2.5, POLY, true),
-  exo('Développé incliné haltères', 'Pectoraux', 'haltères', 1, POLY),
-  exo('Écarté poulie vis-à-vis', 'Pectoraux', 'poulie', 0.5, ISOLATION),
-  exo('Dips', 'Pectoraux', 'poids du corps', 2.5, POLY),
-  exo('Développé couché machine', 'Pectoraux', 'machine', 2.5, POLY),
+  // Pectoraux (16 séries)
+  exo('Développé couché barre', 'Pectoraux', 'barre', 2.5, 6, 8, 165, 4, true),
+  exo('Développé incliné haltères', 'Pectoraux', 'haltères', 1, 8, 10, 120, 4),
+  exo('Écarté à la poulie', 'Pectoraux', 'poulie', 0.5, 10, 15, 90, 4),
+  exo('Dips buste penché ou Pec Deck', 'Pectoraux', 'poids du corps', 2.5, 10, 15, 90, 4),
 
-  // Dos
-  exo('Tirage vertical', 'Dos', 'poulie', 2.5, POLY, true),
-  exo('Rowing barre', 'Dos', 'barre', 2.5, POLY),
-  exo('Tirage horizontal poulie', 'Dos', 'poulie', 2.5, POLY),
-  exo('Rowing haltère unilatéral', 'Dos', 'haltères', 1, POLY),
-  exo('Tractions', 'Dos', 'poids du corps', 2.5, POLY),
+  // Dos (14 séries)
+  exo('Tirage vertical (prise large)', 'Dos', 'poulie', 2.5, 6, 10, 120, 4, true),
+  exo('Rowing machine poitrine appuyée', 'Dos', 'machine', 2.5, 8, 10, 120, 5),
+  exo('Tirage horizontal poulie', 'Dos', 'poulie', 2.5, 10, 12, 105, 5),
 
-  // Épaules
-  exo('Développé militaire', 'Épaules', 'barre', 2.5, POLY, true),
-  exo('Élévations latérales haltères', 'Épaules', 'haltères', 1, ISOLATION),
-  exo('Développé haltères assis', 'Épaules', 'haltères', 1, POLY),
-  exo('Oiseau poulie', 'Épaules', 'poulie', 0.5, ISOLATION),
-  exo('Élévations latérales poulie', 'Épaules', 'poulie', 0.5, ISOLATION),
+  // Épaules (12 séries)
+  exo('Développé militaire haltères', 'Épaules', 'haltères', 1, 6, 10, 120, 4, true),
+  exo('Élévations latérales', 'Épaules', 'haltères', 1, 12, 20, 90, 5),
+  exo('Oiseau à la machine', 'Épaules', 'machine', 2.5, 12, 20, 90, 3),
 
-  // Biceps
-  exo('Curl barre', 'Biceps', 'barre', 2.5, ISOLATION, true),
-  exo('Curl haltères alterné', 'Biceps', 'haltères', 1, ISOLATION),
-  exo('Curl pupitre', 'Biceps', 'machine', 2.5, ISOLATION),
-  exo('Curl poulie basse', 'Biceps', 'poulie', 0.5, ISOLATION),
-  exo('Curl marteau haltères', 'Biceps', 'haltères', 1, ISOLATION),
+  // Biceps (10 séries)
+  exo('Curl barre EZ', 'Biceps', 'barre', 2.5, 8, 10, 120, 4, true),
+  exo('Curl incliné haltères', 'Biceps', 'haltères', 1, 10, 12, 90, 3),
+  exo('Curl pupitre', 'Biceps', 'machine', 2.5, 10, 15, 90, 3),
 
-  // Triceps
-  exo('Extension triceps poulie', 'Triceps', 'poulie', 0.5, ISOLATION, true),
-  exo('Barre au front', 'Triceps', 'barre', 2.5, ISOLATION),
-  exo('Extension nuque haltère', 'Triceps', 'haltères', 1, ISOLATION),
-  exo('Dips triceps', 'Triceps', 'poids du corps', 2.5, POLY),
-  exo('Pushdown corde', 'Triceps', 'poulie', 0.5, ISOLATION),
+  // Triceps (10 séries)
+  exo('Barre au front', 'Triceps', 'barre', 2.5, 8, 10, 120, 4, true),
+  exo('Extension corde à la poulie', 'Triceps', 'poulie', 0.5, 10, 12, 90, 3),
+  exo('Extension unilatérale au-dessus de la tête', 'Triceps', 'haltères', 1, 12, 15, 90, 3),
 
-  // Cuisses
-  exo('Presse à cuisses', 'Cuisses', 'machine', 2.5, POLY, true),
-  exo('Squat barre', 'Cuisses', 'barre', 2.5, POLY),
-  exo('Fentes haltères', 'Cuisses', 'haltères', 1, POLY),
-  exo('Leg extension', 'Cuisses', 'machine', 2.5, ISOLATION),
-  exo('Leg curl allongé', 'Cuisses', 'machine', 2.5, ISOLATION),
+  // Quadriceps (10 séries)
+  exo('Squat ou Hack Squat', 'Quadriceps', 'barre', 2.5, 6, 8, 180, 4, true),
+  exo('Presse à cuisses', 'Quadriceps', 'machine', 2.5, 10, 12, 120, 3),
+  exo('Leg Extension', 'Quadriceps', 'machine', 2.5, 12, 15, 90, 3),
 
-  // Mollets
-  exo('Mollets debout', 'Mollets', 'machine', 2.5, MOLLETS, true),
-  exo('Mollets assis', 'Mollets', 'machine', 2.5, MOLLETS),
-  exo('Mollets à la presse', 'Mollets', 'machine', 2.5, MOLLETS),
-  exo('Mollets debout haltère', 'Mollets', 'haltères', 1, MOLLETS),
-  exo('Mollets poulie', 'Mollets', 'poulie', 0.5, MOLLETS),
+  // Ischio-jambiers (6 séries)
+  exo('Leg Curl allongé ou assis', 'Ischio-jambiers', 'machine', 2.5, 10, 12, 90, 3, true),
+  exo('Soulevé de terre jambes tendues', 'Ischio-jambiers', 'barre', 2.5, 8, 10, 120, 3),
 
-  // Abdominaux
-  exo('Crunch poulie haute', 'Abdominaux', 'poulie', 0.5, ISOLATION),
-  exo('Relevé de jambes suspendu', 'Abdominaux', 'poids du corps', 2.5, ISOLATION),
-  exo('Crunch machine', 'Abdominaux', 'machine', 2.5, ISOLATION),
-  exo('Gainage lesté', 'Abdominaux', 'lestée', 2.5, ISOLATION),
-  exo('Rotation poulie', 'Abdominaux', 'poulie', 0.5, ISOLATION),
+  // Mollets (6 séries)
+  exo('Mollets debout', 'Mollets', 'machine', 2.5, 10, 15, 90, 3, true),
+  exo('Mollets assis', 'Mollets', 'machine', 2.5, 12, 20, 90, 3),
 ]
 
 export const CIBLES_VOLUME_DEPART: CibleVolume[] = [
-  { groupeMusculaire: 'Pectoraux', seriesCibleSemaine: 15, seancesCibleSemaine: 2 },
+  { groupeMusculaire: 'Pectoraux', seriesCibleSemaine: 16, seancesCibleSemaine: 2 },
+  { groupeMusculaire: 'Dos', seriesCibleSemaine: 14, seancesCibleSemaine: 2 },
+  { groupeMusculaire: 'Épaules', seriesCibleSemaine: 12, seancesCibleSemaine: 2 },
   { groupeMusculaire: 'Biceps', seriesCibleSemaine: 10, seancesCibleSemaine: 2 },
   { groupeMusculaire: 'Triceps', seriesCibleSemaine: 10, seancesCibleSemaine: 2 },
-  { groupeMusculaire: 'Dos', seriesCibleSemaine: 11, seancesCibleSemaine: 2 },
-  { groupeMusculaire: 'Épaules', seriesCibleSemaine: 7, seancesCibleSemaine: 2 },
-  { groupeMusculaire: 'Cuisses', seriesCibleSemaine: 8, seancesCibleSemaine: 2 },
-  { groupeMusculaire: 'Mollets', seriesCibleSemaine: 4, seancesCibleSemaine: 1 },
-  { groupeMusculaire: 'Abdominaux', seriesCibleSemaine: 4, seancesCibleSemaine: 2 },
+  { groupeMusculaire: 'Quadriceps', seriesCibleSemaine: 10, seancesCibleSemaine: 2 },
+  { groupeMusculaire: 'Ischio-jambiers', seriesCibleSemaine: 6, seancesCibleSemaine: 1 },
+  { groupeMusculaire: 'Mollets', seriesCibleSemaine: 6, seancesCibleSemaine: 1 },
 ]
 
 const REGLAGES_DEPART: Record<string, string> = {

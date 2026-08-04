@@ -1,13 +1,14 @@
 import { db } from './schema'
 import { ordrePriorite } from './types'
 import type { Exercice, GroupeMusculaire, Seance, SeanceExercice, Serie } from './types'
-import { estDansSemaine, joursDepuis } from '../utils/dates'
+import { estDansSemaine, joursDepuis, heuresDepuis } from '../utils/dates'
 import { serieEstEfficace } from './rir'
 
 export interface EtatGroupe {
   groupe: GroupeMusculaire
   derniereDateIso: string | null
   joursDepuisDerniere: number | null
+  heuresDepuisDerniere: number | null
   cibleSeriesSemaine: number
   cibleSeancesSemaine: number
   seriesEfficacesSemaine: number
@@ -86,6 +87,7 @@ export async function etatsGroupes(): Promise<EtatGroupe[]> {
       groupe: cible.groupeMusculaire,
       derniereDateIso: derniere?.date ?? null,
       joursDepuisDerniere: derniere ? joursDepuis(derniere.date) : null,
+      heuresDepuisDerniere: derniere ? heuresDepuis(derniere.date) : null,
       cibleSeriesSemaine: cible.seriesCibleSemaine,
       cibleSeancesSemaine: cible.seancesCibleSemaine,
       seriesEfficacesSemaine: efficaces,

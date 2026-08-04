@@ -19,11 +19,11 @@ interface Props {
   onOuvrirHistorique: () => void
 }
 
-const CLASSES_COULEUR_VOLUME: Record<string, string> = {
-  vert: 'border-emerald-300 bg-emerald-50 text-emerald-700',
-  orange: 'border-amber-300 bg-amber-50 text-amber-700',
-  rouge: 'border-red-300 bg-red-50 text-red-700',
-  violet: 'border-violet-300 bg-violet-50 text-violet-700',
+const HEURES_RECUPERATION = 50
+
+const CLASSES_DISPONIBILITE = {
+  disponible: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+  indispo: 'border-red-300 bg-red-50 text-red-700',
 }
 
 export function AccueilScreen({
@@ -149,9 +149,11 @@ export function AccueilScreen({
       <div className="flex flex-col gap-3">
         {etatsTries.map((etat) => {
           const stat = statsParGroupe.get(etat.groupe)
-          const couleur = stat ? CLASSES_COULEUR_VOLUME[stat.couleur] : 'border-slate-300 bg-white text-slate-600'
+          const disponible = etat.heuresDepuisDerniere === null || etat.heuresDepuisDerniere >= HEURES_RECUPERATION
+          const couleur = CLASSES_DISPONIBILITE[disponible ? 'disponible' : 'indispo']
           const selectionne = selection.includes(etat.groupe)
           const reste = stat ? Math.max(0, stat.cibleSeries - stat.seriesEfficaces) : null
+          const progression = stat && stat.cibleSeries > 0 ? Math.min(100, (stat.seriesEfficaces / stat.cibleSeries) * 100) : 0
           return (
             <div
               key={etat.groupe}
@@ -159,43 +161,48 @@ export function AccueilScreen({
               tabIndex={0}
               onClick={() => basculer(etat.groupe)}
               onKeyDown={(e) => e.key === 'Enter' && basculer(etat.groupe)}
-              className={`flex min-h-14 cursor-pointer items-center justify-between rounded-2xl border-2 px-4 py-3 text-left transition ${couleur} ${
+              className={`flex cursor-pointer flex-col gap-2 rounded-2xl border-2 px-4 py-3 text-left transition ${couleur} ${
                 selectionne ? 'ring-2 ring-accent' : ''
               }`}
             >
-              <div>
-                <p className="text-lg font-medium text-slate-900">{etat.groupe}</p>
-                <p className="text-sm opacity-80">
-                  {etat.joursDepuisDerniere === null
-                    ? 'Jamais fait'
-                    : formatDelaiRelatif(etat.joursDepuisDerniere)}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="text-right text-sm opacity-80">
-                  {stat && stat.totalSeries !== stat.seriesEfficaces ? (
-                    <p>
-                      {stat.seriesEfficaces} eff. / {stat.totalSeries} séries
-                    </p>
-                  ) : (
-                    <p>{stat?.seriesEfficaces ?? 0} séries</p>
-                  )}
-                  <p>
-                    cible {stat?.cibleSeries ?? '—'}
-                    {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
+              <div className="flex min-h-11 items-center justify-between">
+                <div>
+                  <p className="text-lg font-medium text-slate-900">{etat.groupe}</p>
+                  <p className="text-sm opacity-80">
+                    {etat.joursDepuisDerniere === null
+                      ? 'Jamais fait'
+                      : formatDelaiRelatif(etat.joursDepuisDerniere)}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onOuvrirGroupe(etat.groupe)
-                  }}
-                  className="flex min-h-9 min-w-9 items-center justify-center rounded-xl border border-current text-xs opacity-70"
-                  aria-label={`Statistiques ${etat.groupe}`}
-                >
-                  📈
-                </button>
+                <div className="flex items-center gap-2">
+                  <div className="text-right text-sm opacity-80">
+                    {stat && stat.totalSeries !== stat.seriesEfficaces ? (
+                      <p>
+                        {stat.seriesEfficaces} eff. / {stat.totalSeries} séries
+                      </p>
+                    ) : (
+                      <p>{stat?.seriesEfficaces ?? 0} séries</p>
+                    )}
+                    <p>
+                      cible {stat?.cibleSeries ?? '—'}
+                      {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onOuvrirGroupe(etat.groupe)
+                    }}
+                    className="flex min-h-9 min-w-9 items-center justify-center rounded-xl border border-current text-xs opacity-70"
+                    aria-label={`Statistiques ${etat.groupe}`}
+                  >
+                    📈
+                  </button>
+                </div>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/60">
+                <div className="h-full bg-accent" style={{ width: `${progression}%` }} />
               </div>
             </div>
           )

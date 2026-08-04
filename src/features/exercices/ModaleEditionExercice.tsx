@@ -16,6 +16,7 @@ export function ModaleEditionExercice({ exercice, onEnregistre, onFermer }: Prop
   const [reposDefautSec, setReposDefautSec] = useState(exercice.reposDefautSec)
   const [repsCibleMin, setRepsCibleMin] = useState(exercice.repsCibleMin)
   const [repsCibleMax, setRepsCibleMax] = useState(exercice.repsCibleMax)
+  const [seriesCibleDefaut, setSeriesCibleDefaut] = useState(exercice.seriesCibleDefaut)
   const [notes, setNotes] = useState(exercice.notes)
 
   async function enregistrer() {
@@ -30,6 +31,7 @@ export function ModaleEditionExercice({ exercice, onEnregistre, onFermer }: Prop
       reposDefautSec,
       repsCibleMin,
       repsCibleMax: Math.max(repsCibleMax, repsCibleMin),
+      seriesCibleDefaut,
       notes,
     }
     await db.exercices.update(exercice.id, maj)
@@ -111,6 +113,13 @@ export function ModaleEditionExercice({ exercice, onEnregistre, onFermer }: Prop
           <button type="button" onClick={() => setRepsCibleMax((r) => Math.max(1, r - 1))} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 text-slate-600">−</button>
           <span className="w-10 text-center text-slate-800">{repsCibleMax}</span>
           <button type="button" onClick={() => setRepsCibleMax((r) => r + 1)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 text-slate-600">+</button>
+        </div>
+
+        <label className="mb-1 text-xs text-slate-400">Séries par défaut</label>
+        <div className="mb-3 flex items-center gap-2">
+          <button type="button" onClick={() => setSeriesCibleDefaut((s) => Math.max(1, s - 1))} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 text-slate-600">−</button>
+          <span className="w-10 text-center text-slate-800">{seriesCibleDefaut}</span>
+          <button type="button" onClick={() => setSeriesCibleDefaut((s) => s + 1)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300 text-slate-600">+</button>
         </div>
 
         <label className="mb-1 text-xs text-slate-400">Notes</label>

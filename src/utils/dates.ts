@@ -1,4 +1,5 @@
 const JOUR_MS = 24 * 60 * 60 * 1000
+const HEURE_MS = 60 * 60 * 1000
 
 export function debutSemaine(date = new Date()): Date {
   const d = new Date(date)
@@ -27,6 +28,10 @@ export function joursDepuis(dateIso: string, reference = new Date()): number {
   const ref = new Date(reference)
   ref.setHours(0, 0, 0, 0)
   return Math.round((ref.getTime() - debut.getTime()) / JOUR_MS)
+}
+
+export function heuresDepuis(dateIso: string, reference = new Date()): number {
+  return (reference.getTime() - new Date(dateIso).getTime()) / HEURE_MS
 }
 
 export function formatDelaiRelatif(jours: number): string {

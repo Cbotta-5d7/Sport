@@ -246,7 +246,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
       statut: 'a_faire',
       remplaceExerciceId: null,
     })
-    await definirPrevisionSeries(nouvelSEId, 3)
+    await definirPrevisionSeries(nouvelSEId, exercice.seriesCibleDefaut)
     setModaleChoix(null)
     setOngletActif(seanceExercices.length)
   }

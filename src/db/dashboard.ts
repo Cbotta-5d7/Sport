@@ -5,14 +5,11 @@ import { estDansSemaine, debutSemaine } from '../utils/dates'
 import { serieEstEfficace } from './rir'
 import { estimation1RM, tonnageTotal, estSerieDeTravail } from '../utils/calculs'
 
-export type CouleurGroupeSemaine = 'vert' | 'orange' | 'rouge' | 'violet'
-
 export interface StatGroupeSemaine {
   groupe: GroupeMusculaire
   cibleSeries: number
   totalSeries: number
   seriesEfficaces: number
-  couleur: CouleurGroupeSemaine
 }
 
 export interface TableauBordSemaine {
@@ -74,18 +71,11 @@ export async function tableauBordSemaine(reference = new Date()): Promise<Tablea
 
   const groupes: StatGroupeSemaine[] = cibles.map((c) => {
     const stats = parGroupe.get(c.groupeMusculaire) ?? { total: 0, efficaces: 0 }
-    const reste = Math.max(0, c.seriesCibleSemaine - stats.efficaces)
-    let couleur: CouleurGroupeSemaine
-    if (stats.efficaces > 20) couleur = 'violet'
-    else if (reste === 0) couleur = 'vert'
-    else if (seancesRestantes > 0 && reste <= seancesRestantes * 10) couleur = 'orange'
-    else couleur = 'rouge'
     return {
       groupe: c.groupeMusculaire,
       cibleSeries: c.seriesCibleSemaine,
       totalSeries: stats.total,
       seriesEfficaces: stats.efficaces,
-      couleur,
     }
   })
 

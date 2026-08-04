@@ -4,9 +4,9 @@ export type GroupeMusculaire =
   | 'Épaules'
   | 'Biceps'
   | 'Triceps'
-  | 'Cuisses'
+  | 'Quadriceps'
+  | 'Ischio-jambiers'
   | 'Mollets'
-  | 'Abdominaux'
 
 export const GROUPES_MUSCULAIRES: GroupeMusculaire[] = [
   'Pectoraux',
@@ -14,9 +14,9 @@ export const GROUPES_MUSCULAIRES: GroupeMusculaire[] = [
   'Épaules',
   'Biceps',
   'Triceps',
-  'Cuisses',
+  'Quadriceps',
+  'Ischio-jambiers',
   'Mollets',
-  'Abdominaux',
 ]
 
 // Ordre de priorité choisi par l'utilisateur pour les cibles de volume par défaut.
@@ -26,9 +26,9 @@ export const GROUPES_PAR_PRIORITE: GroupeMusculaire[] = [
   'Triceps',
   'Dos',
   'Épaules',
-  'Cuisses',
+  'Quadriceps',
+  'Ischio-jambiers',
   'Mollets',
-  'Abdominaux',
 ]
 
 export function ordrePriorite(groupe: GroupeMusculaire): number {
@@ -65,6 +65,7 @@ export interface Exercice {
   reposDefautSec: number
   repsCibleMin: number
   repsCibleMax: number
+  seriesCibleDefaut: number
   estRepere: boolean
   archive: boolean
   notes: string
