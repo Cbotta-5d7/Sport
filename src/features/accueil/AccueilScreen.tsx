@@ -17,11 +17,19 @@ export function AccueilScreen({ onContinuer }: Props) {
 
   const etatsTries = useMemo(() => {
     if (!etats) return []
-    if (!tri) return etats
+    if (tri) {
+      return [...etats].sort((a, b) => {
+        const ja = a.joursDepuisDerniere ?? Number.POSITIVE_INFINITY
+        const jb = b.joursDepuisDerniere ?? Number.POSITIVE_INFINITY
+        return jb - ja
+      })
+    }
+    const enRetardDepuis10Jours = (j: number | null) => j !== null && j > 10
     return [...etats].sort((a, b) => {
-      const ja = a.joursDepuisDerniere ?? Number.POSITIVE_INFINITY
-      const jb = b.joursDepuisDerniere ?? Number.POSITIVE_INFINITY
-      return jb - ja
+      const aEnRetard = enRetardDepuis10Jours(a.joursDepuisDerniere)
+      const bEnRetard = enRetardDepuis10Jours(b.joursDepuisDerniere)
+      if (aEnRetard !== bEnRetard) return aEnRetard ? -1 : 1
+      return 0
     })
   }, [etats, tri])
 

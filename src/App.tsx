@@ -4,6 +4,7 @@ import { seanceEnCours } from './db/queries'
 import { AccueilScreen } from './features/accueil/AccueilScreen'
 import { SelectionScreen } from './features/selection/SelectionScreen'
 import { SeanceScreen } from './features/seance/SeanceScreen'
+import { FinSeanceScreen } from './features/seance/FinSeanceScreen'
 import type { GroupeMusculaire } from './db/types'
 
 type Vue =
@@ -11,6 +12,7 @@ type Vue =
   | { nom: 'accueil' }
   | { nom: 'selection'; groupes: GroupeMusculaire[] }
   | { nom: 'seance'; seanceId: number }
+  | { nom: 'finSeance'; seanceId: number }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -54,7 +56,16 @@ function App() {
     )
   }
 
-  return <SeanceScreen seanceId={vue.seanceId} onTerminee={() => setVue({ nom: 'accueil' })} />
+  if (vue.nom === 'seance') {
+    return (
+      <SeanceScreen
+        seanceId={vue.seanceId}
+        onTerminee={() => setVue({ nom: 'finSeance', seanceId: vue.seanceId })}
+      />
+    )
+  }
+
+  return <FinSeanceScreen seanceId={vue.seanceId} onFermer={() => setVue({ nom: 'accueil' })} />
 }
 
 export default App

@@ -1,6 +1,12 @@
 import type { Exercice, Serie } from '../db/types'
+import { arrondiIncrement } from './nombres'
 
-export type RegleProgression = 'premiere_fois' | 'augmentation' | 'plus_une_rep' | 'consolidation'
+export type RegleProgression =
+  | 'premiere_fois'
+  | 'augmentation'
+  | 'plus_une_rep'
+  | 'consolidation'
+  | 'deload'
 
 export interface Suggestion {
   poidsKg: number
@@ -20,6 +26,7 @@ const POIDS_DEPART_PAR_TYPE: Record<Exercice['typeCharge'], number> = {
 export function calculerSuggestion(
   exercice: Pick<Exercice, 'repsCibleMin' | 'repsCibleMax' | 'incrementKg' | 'typeCharge'>,
   dernieresSeriesTravail: Pick<Serie, 'poidsKg' | 'reps'>[],
+  avantDernieresSeriesTravail: Pick<Serie, 'reps'>[] = [],
 ): Suggestion {
   if (dernieresSeriesTravail.length === 0) {
     return {
@@ -38,6 +45,14 @@ export function calculerSuggestion(
     return { poidsKg: poidsBase + incrementKg, repsCible: repsCibleMin, regle: 'augmentation' }
   }
   if (unSousMin) {
+    const rateeAvant = avantDernieresSeriesTravail.some((s) => s.reps < repsCibleMin)
+    if (rateeAvant) {
+      return {
+        poidsKg: arrondiIncrement(poidsBase * 0.95, incrementKg),
+        repsCible: repsCibleMin,
+        regle: 'deload',
+      }
+    }
     return { poidsKg: poidsBase, repsCible: repsCibleMin, regle: 'consolidation' }
   }
   const repsNonMax = dernieresSeriesTravail.map((s) => s.reps).filter((r) => r < repsCibleMax)
@@ -61,6 +76,9 @@ export function texteCommentaire(
 
   if (suggestion.regle === 'augmentation') {
     return `La dernière fois : ${poids} kg x ${reps}. Tu as saturé le haut de la fourchette. On monte.`
+  }
+  if (suggestion.regle === 'deload') {
+    return `La dernière fois : ${poids} kg x ${reps}. Objectif raté deux séances de suite. On décharge et on reconstruit.`
   }
   if (suggestion.regle === 'consolidation') {
     return `La dernière fois : ${poids} kg x ${reps}. Une série était sous la fourchette. On consolide.`

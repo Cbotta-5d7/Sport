@@ -9,11 +9,13 @@ import {
   seriesEfficacesSemaine,
 } from '../../db/queries'
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
-import { demarrerMinuteur } from '../../db/minuteur'
+import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
+import { detecterRecord } from '../../db/records'
 import { nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { calculerSuggestion, texteConsigne, texteCommentaire } from '../../utils/progression'
 import { calculerComparaisonTonnage } from '../../utils/tonnageComparaison'
+import { detecterDepassementLarge, detecterChuteReps } from '../../utils/coach'
 import { useChronometre, formatDuree } from '../../hooks/useChronometre'
 import { useWakeLock } from '../../hooks/useWakeLock'
 import { vibrerCourt } from '../../utils/vibration'
@@ -76,6 +78,11 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
   const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0, rir: null, type: 'normale' })
 
   useEffect(() => {
+    setCoach(null)
+    setDernierRecord(null)
+  }, [seActuel?.id])
+
+  useEffect(() => {
     if (!seActuel) return
     if (seriesActuelles.length > 0) {
       const derniere = seriesActuelles[seriesActuelles.length - 1]
@@ -83,7 +90,8 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       return
     }
     const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
-    const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail)
+    const avantDernieresTravail = (historiqueExo[1]?.series ?? []).filter((s) => s.type !== 'échauffement')
+    const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
     setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible, rir: null, type: 'normale' })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seActuel?.id, seriesActuelles.length, historiqueExo])
@@ -92,6 +100,8 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
   const [indexRemplacement, setIndexRemplacement] = useState<number | null>(null)
   const [modaleNote, setModaleNote] = useState(false)
   const [alertes, setAlertes] = useState<AlerteGroupe[] | null>(null)
+  const [coach, setCoach] = useState<{ texte: string; action: () => void } | null>(null)
+  const [dernierRecord, setDernierRecord] = useState<string | null>(null)
   const longPressRef = useRef<number | null>(null)
   const touchStartX = useRef<number | null>(null)
 
@@ -132,7 +142,8 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
 
   const estDerniereSerie = seriesActuelles.length + 1 >= (prevision ?? Infinity)
   const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
-  const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail)
+  const avantDernieresTravail = (historiqueExo[1]?.series ?? []).filter((s) => s.type !== 'échauffement')
+  const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
   const historiqueRecentSeries = historiqueExo.map((h) => h.series)
   const comparaisonTonnage = calculerComparaisonTonnage(seriesActuelles, dernieresTravail.length ? dernieresTravail : null, historiqueRecentSeries, prevision)
 
@@ -140,6 +151,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
     if (!seActuel) return
     if (estDerniereSerie && entree.rir === null) return
 
+    setCoach(null)
     const maintenant = nowIso()
     const derniereValidee = seriesActuelles[seriesActuelles.length - 1]
     if (derniereValidee) {
@@ -148,6 +160,12 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       )
       await db.series.update(derniereValidee.id, { reposReelSec: Math.max(0, reposReel) })
     }
+
+    const record =
+      entree.type !== 'échauffement'
+        ? await detecterRecord(seActuel.exerciceId, entree.poidsKg, entree.reps)
+        : { poids: false, rm: false, volume: false }
+    const estRecord = record.poids || record.rm || record.volume
 
     const numeroSerie = seriesActuelles.length + 1
     const nouvelId = await db.series.add({
@@ -159,9 +177,18 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       rir: estDerniereSerie ? entree.rir : null,
       reposReelSec: null,
       validee: true,
-      estRecord: false,
+      estRecord,
       horodatage: maintenant,
     })
+
+    if (estRecord) {
+      const libelles = [
+        record.poids && 'meilleur poids',
+        record.rm && 'meilleur 1RM estimé',
+        record.volume && 'meilleur volume sur une série',
+      ].filter(Boolean)
+      setDernierRecord(`Record : ${libelles.join(', ')} sur ${seActuel.exercice.nom} !`)
+    }
 
     if (estDerniereSerie && entree.rir !== null) {
       const rirFinal = entree.rir
@@ -172,6 +199,20 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
       await db.seanceExercices.update(seActuel.id, { statut: 'fait' })
     } else if (seActuel.statut === 'a_faire') {
       await db.seanceExercices.update(seActuel.id, { statut: 'en_cours' })
+    }
+
+    if (detecterDepassementLarge(entree.reps, seActuel.exercice.repsCibleMax)) {
+      const incrementKg = seActuel.exercice.incrementKg
+      setCoach({
+        texte: 'Large dépassement de l\'objectif. Monter le poids dès la série suivante ?',
+        action: () =>
+          setEntree((e) => ({ ...e, poidsKg: e.poidsKg + incrementKg, reps: seActuel.exercice.repsCibleMin })),
+      })
+    } else if (derniereValidee && detecterChuteReps(entree.reps, derniereValidee.reps)) {
+      setCoach({
+        texte: 'Chute de reps : repos trop court ou charge trop lourde. Ajouter 30 s de repos ?',
+        action: () => ajusterMinuteur(30),
+      })
     }
 
     await demarrerMinuteur(seActuel.exercice.reposDefautSec, nouvelId)
@@ -399,6 +440,31 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         <div className="mb-4">
           <BlocTonnage comparaison={comparaisonTonnage} />
         </div>
+
+        {dernierRecord && (
+          <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-600 bg-amber-950/40 px-3 py-2">
+            <p className="text-sm text-amber-300">🏆 {dernierRecord}</p>
+            <button type="button" onClick={() => setDernierRecord(null)} className="min-h-8 min-w-8 text-amber-500">
+              ✕
+            </button>
+          </div>
+        )}
+
+        {coach && (
+          <div className="mb-4 flex items-center justify-between gap-2 rounded-xl border border-sky-700 bg-sky-950/40 px-3 py-2">
+            <p className="text-sm text-sky-300">{coach.texte}</p>
+            <button
+              type="button"
+              onClick={() => {
+                coach.action()
+                setCoach(null)
+              }}
+              className="min-h-10 shrink-0 rounded-lg bg-sky-800 px-3 text-sm text-slate-100"
+            >
+              Appliquer
+            </button>
+          </div>
+        )}
 
         {seriesActuelles.length > 0 && (
           <div className="mb-4 flex flex-col gap-1">
