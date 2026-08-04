@@ -1,14 +1,27 @@
-export function vibrerCourt(): void {
-  navigator.vibrate?.(40)
+import { db } from '../db/schema'
+
+async function vibrationAutorisee(): Promise<boolean> {
+  const r = await db.reglages.get('vibrationActif')
+  return r?.valeur !== 'false'
 }
 
-export function vibrerFinMinuteur(): void {
-  navigator.vibrate?.([80, 60, 80])
+async function sonAutorise(): Promise<boolean> {
+  const r = await db.reglages.get('sonActif')
+  return r?.valeur !== 'false'
+}
+
+export async function vibrerCourt(): Promise<void> {
+  if (await vibrationAutorisee()) navigator.vibrate?.(40)
+}
+
+export async function vibrerFinMinuteur(): Promise<void> {
+  if (await vibrationAutorisee()) navigator.vibrate?.([80, 60, 80])
 }
 
 let contexteAudio: AudioContext | null = null
 
-export function jouerBip(): void {
+export async function jouerBip(): Promise<void> {
+  if (!(await sonAutorise())) return
   try {
     contexteAudio ??= new AudioContext()
     const ctx = contexteAudio

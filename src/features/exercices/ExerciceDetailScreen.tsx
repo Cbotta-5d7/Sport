@@ -25,6 +25,7 @@ import {
   type PointNuage,
   type RepartitionReps,
 } from '../../db/graphiques'
+import { ModaleEditionExercice } from './ModaleEditionExercice'
 
 const AXE_STYLE = { fontSize: 11, fill: '#64748b' }
 const TOOLTIP_STYLE = { backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, fontSize: 12 }
@@ -40,6 +41,7 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
   const [tonnage, setTonnage] = useState<PointTonnageSeance[]>([])
   const [nuage, setNuage] = useState<PointNuage[]>([])
   const [repartition, setRepartition] = useState<RepartitionReps[]>([])
+  const [editionOuverte, setEditionOuverte] = useState(false)
 
   useEffect(() => {
     let annule = false
@@ -97,6 +99,13 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
           <h1 className="text-xl font-semibold text-slate-50">{exercice.nom}</h1>
           <p className="text-xs text-slate-500">{exercice.groupeMusculaire}</p>
         </div>
+        <button
+          type="button"
+          onClick={() => setEditionOuverte(true)}
+          className="min-h-11 rounded-lg border border-slate-700 px-3 text-sm text-slate-300"
+        >
+          Modifier
+        </button>
         <button
           type="button"
           onClick={basculerRepere}
@@ -169,6 +178,17 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
       >
         Archiver cet exercice
       </button>
+
+      {editionOuverte && (
+        <ModaleEditionExercice
+          exercice={exercice}
+          onEnregistre={(maj) => {
+            setExercice(maj)
+            setEditionOuverte(false)
+          }}
+          onFermer={() => setEditionOuverte(false)}
+        />
+      )}
     </div>
   )
 }

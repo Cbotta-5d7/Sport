@@ -1,22 +1,34 @@
 import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import { synchroniserMaintenant, lireConfigGitHub } from '../../sync/synchroniser'
 import { verifierAcces } from '../../sync/github'
+import { telechargerExportJSON } from '../../sync/export'
 import { useEtatSync } from '../../sync/useEtatSync'
 import { IndicateurSync } from './IndicateurSync'
+import { ReglagesVolume } from './ReglagesVolume'
+
+const PLAGES_DISQUES = [25, 20, 15, 10, 5, 2.5, 1.25, 1, 0.5]
 
 interface Props {
   onRetour: () => void
   onOuvrirSauvegardes: () => void
+  onOuvrirCalculateur: () => void
 }
 
-export function ReglagesScreen({ onRetour, onOuvrirSauvegardes }: Props) {
+export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculateur }: Props) {
   const [proprietaire, setProprietaire] = useState('')
   const [depot, setDepot] = useState('')
   const [jeton, setJeton] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [enCours, setEnCours] = useState(false)
   const etat = useEtatSync()
+
+  const reglagesDivers = useLiveQuery(
+    () => db.reglages.bulkGet(['poidsBarreKg', 'inventaireDisquesKg', 'sonActif', 'vibrationActif', 'seancesCibleParSemaine']),
+    [],
+    undefined,
+  )
 
   useEffect(() => {
     Promise.all([
@@ -65,6 +77,36 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes }: Props) {
     setEnCours(false)
   }
 
+  const poidsBarreKg = reglagesDivers?.[0]?.valeur ?? '20'
+  const inventaireDisques: number[] = reglagesDivers?.[1]?.valeur ? JSON.parse(reglagesDivers[1].valeur) : []
+  const sonActif = reglagesDivers?.[2]?.valeur !== 'false'
+  const vibrationActif = reglagesDivers?.[3]?.valeur !== 'false'
+  const seancesCibleParSemaine = reglagesDivers?.[4]?.valeur ?? '3'
+
+  async function changerPoidsBarre(valeur: string) {
+    if (!/^\d*([.,]\d*)?$/.test(valeur)) return
+    await db.reglages.put({ cle: 'poidsBarreKg', valeur: valeur.replace(',', '.') })
+  }
+
+  async function changerSeancesCible(valeur: string) {
+    if (!/^\d*$/.test(valeur)) return
+    await db.reglages.put({ cle: 'seancesCibleParSemaine', valeur })
+  }
+
+  async function basculerDisque(poids: number) {
+    const nouvelInventaire = inventaireDisques.includes(poids)
+      ? inventaireDisques.filter((d) => d !== poids)
+      : [...inventaireDisques, poids]
+    await db.reglages.put({ cle: 'inventaireDisquesKg', valeur: JSON.stringify(nouvelInventaire) })
+  }
+
+  async function basculerSon() {
+    await db.reglages.put({ cle: 'sonActif', valeur: String(!sonActif) })
+  }
+  async function basculerVibration() {
+    await db.reglages.put({ cle: 'vibrationActif', valeur: String(!vibrationActif) })
+  }
+
   return (
     <div
       className="flex min-h-dvh flex-col px-4 pb-10"
@@ -83,6 +125,77 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes }: Props) {
         </div>
         <IndicateurSync />
       </header>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-400">Séances</h2>
+      <div className="mb-6 flex items-center justify-between rounded-xl border border-slate-800 px-4 py-3">
+        <span className="text-sm text-slate-200">Cible de séances par semaine</span>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={seancesCibleParSemaine}
+          onChange={(e) => changerSeancesCible(e.target.value)}
+          className="w-14 rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-center text-slate-50"
+        />
+      </div>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-400">Cibles de volume par groupe</h2>
+      <div className="mb-6">
+        <ReglagesVolume />
+      </div>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-400">Matériel</h2>
+      <div className="mb-3 flex items-center justify-between rounded-xl border border-slate-800 px-4 py-3">
+        <span className="text-sm text-slate-200">Poids de la barre (kg)</span>
+        <input
+          type="text"
+          inputMode="decimal"
+          value={poidsBarreKg}
+          onChange={(e) => changerPoidsBarre(e.target.value)}
+          className="w-16 rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-center text-slate-50"
+        />
+      </div>
+      <p className="mb-2 text-xs text-slate-500">Inventaire de disques disponibles (par côté)</p>
+      <div className="mb-6 flex flex-wrap gap-2">
+        {PLAGES_DISQUES.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => basculerDisque(p)}
+            className={`min-h-10 rounded-lg border px-3 text-sm ${
+              inventaireDisques.includes(p) ? 'border-accent text-accent' : 'border-slate-700 text-slate-500'
+            }`}
+          >
+            {p.toString().replace('.', ',')} kg
+          </button>
+        ))}
+      </div>
+      <button
+        type="button"
+        onClick={onOuvrirCalculateur}
+        className="mb-6 min-h-12 rounded-xl border border-slate-700 text-sm text-slate-200"
+      >
+        Ouvrir le calculateur de disques
+      </button>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-400">Son et vibration</h2>
+      <div className="mb-6 flex flex-col gap-2">
+        <button
+          type="button"
+          onClick={basculerSon}
+          className="flex min-h-12 items-center justify-between rounded-xl border border-slate-800 px-4 text-sm text-slate-200"
+        >
+          Son du minuteur
+          <span className={sonActif ? 'text-accent' : 'text-slate-500'}>{sonActif ? 'Activé' : 'Désactivé'}</span>
+        </button>
+        <button
+          type="button"
+          onClick={basculerVibration}
+          className="flex min-h-12 items-center justify-between rounded-xl border border-slate-800 px-4 text-sm text-slate-200"
+        >
+          Vibration
+          <span className={vibrationActif ? 'text-accent' : 'text-slate-500'}>{vibrationActif ? 'Activée' : 'Désactivée'}</span>
+        </button>
+      </div>
 
       <h2 className="mb-2 text-sm font-medium text-slate-400">Sauvegarde GitHub</h2>
       <p className="mb-4 text-xs text-slate-500">
@@ -148,9 +261,17 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes }: Props) {
       <button
         type="button"
         onClick={onOuvrirSauvegardes}
-        className="min-h-14 rounded-xl border border-slate-700 text-slate-200"
+        className="mb-3 min-h-14 rounded-xl border border-slate-700 text-slate-200"
       >
         Sauvegardes (historique et restauration)
+      </button>
+
+      <button
+        type="button"
+        onClick={() => telechargerExportJSON()}
+        className="min-h-14 rounded-xl border border-slate-700 text-slate-200"
+      >
+        Export JSON manuel
       </button>
     </div>
   )

@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
-import { GROUPES_MUSCULAIRES, type GroupeMusculaire } from '../../db/types'
+import { GROUPES_MUSCULAIRES, type GroupeMusculaire, type Exercice } from '../../db/types'
+import { ModaleCreationExercice } from './ModaleCreationExercice'
 
 interface Props {
   onRetour: () => void
@@ -11,6 +12,7 @@ interface Props {
 export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
   const [recherche, setRecherche] = useState('')
   const [filtreGroupe, setFiltreGroupe] = useState<GroupeMusculaire | null>(null)
+  const [creationOuverte, setCreationOuverte] = useState(false)
 
   const exercices = useLiveQuery(() => db.exercices.toArray(), [], [])
 
@@ -19,6 +21,11 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
     .filter((e) => !filtreGroupe || e.groupeMusculaire === filtreGroupe)
     .filter((e) => e.nom.toLowerCase().includes(recherche.toLowerCase()))
     .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+
+  function apresCreation(exercice: Exercice) {
+    setCreationOuverte(false)
+    onOuvrirExercice(exercice.id)
+  }
 
   return (
     <div
@@ -33,7 +40,14 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
         >
           ←
         </button>
-        <h1 className="text-xl font-semibold">Exercices</h1>
+        <h1 className="flex-1 text-xl font-semibold">Exercices</h1>
+        <button
+          type="button"
+          onClick={() => setCreationOuverte(true)}
+          className="min-h-10 rounded-lg border border-slate-700 px-3 text-sm text-accent"
+        >
+          + Nouvel exercice
+        </button>
       </header>
 
       <input
@@ -81,6 +95,14 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
         ))}
         {filtres.length === 0 && <p className="text-sm text-slate-500">Aucun exercice.</p>}
       </div>
+
+      {creationOuverte && (
+        <ModaleCreationExercice
+          groupe={filtreGroupe ?? 'Pectoraux'}
+          onCree={apresCreation}
+          onFermer={() => setCreationOuverte(false)}
+        />
+      )}
     </div>
   )
 }

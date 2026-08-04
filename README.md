@@ -83,6 +83,22 @@ avec leur date. Choisir un commit et confirmer pour restaurer son contenu
 dans la base locale (écrase les données locales après confirmation
 explicite).
 
+## Écrans
+
+- Accueil : tableau de bord hebdomadaire (KPI, cibles par groupe), lancement
+  de séance.
+- Séance : pavé numérique intégré, minuteur de repos, coach adaptatif, wake
+  lock.
+- Exercices : recherche, filtre par groupe, création, modification,
+  archivage, marquage repère.
+- Exercices repères : courbes dédiées, alerte au-delà de 3 semaines sans
+  travail.
+- Poids de corps : saisie rapide, courbe, vitesse de prise de masse.
+- Vue globale : radar des groupes, carte de chaleur, volume total.
+- Réglages : cibles de volume, poids de la barre, inventaire de disques,
+  son/vibration, sauvegarde GitHub, sauvegardes, export JSON.
+- Calculateur de disques.
+
 ## Statut du projet
 
 - [x] Phase 1 : socle technique (Vite, PWA, Dexie, déploiement Pages)
@@ -92,4 +108,4 @@ explicite).
 - [x] Phase 5 : synchronisation GitHub
 - [x] Phase 6 : tableau de bord
 - [x] Phase 7 : graphiques
-- [ ] Phase 8 : finitions
+- [x] Phase 8 : calculateur de disques, réglages avancés, finitions

@@ -11,6 +11,10 @@ import { SauvegardesScreen } from './features/reglages/SauvegardesScreen'
 import { ExercicesListScreen } from './features/exercices/ExercicesListScreen'
 import type { GroupeMusculaire } from './db/types'
 
+const CalculateurDisquesScreen = lazy(() =>
+  import('./features/reglages/CalculateurDisquesScreen').then((m) => ({ default: m.CalculateurDisquesScreen })),
+)
+
 const ExerciceDetailScreen = lazy(() =>
   import('./features/exercices/ExerciceDetailScreen').then((m) => ({ default: m.ExerciceDetailScreen })),
 )
@@ -45,6 +49,7 @@ type Vue =
   | { nom: 'globale' }
   | { nom: 'reperes' }
   | { nom: 'poids' }
+  | { nom: 'calculateur' }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -125,7 +130,16 @@ function App() {
       <ReglagesScreen
         onRetour={() => setVue({ nom: 'accueil' })}
         onOuvrirSauvegardes={() => setVue({ nom: 'sauvegardes' })}
+        onOuvrirCalculateur={() => setVue({ nom: 'calculateur' })}
       />
+    )
+  }
+
+  if (vue.nom === 'calculateur') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <CalculateurDisquesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+      </Suspense>
     )
   }
 
