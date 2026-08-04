@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, lazy, Suspense, useState } from 'react'
 import { initialiserDonneesParDefaut } from './db/seed'
 import { seanceEnCours } from './db/queries'
 import { synchroniserMaintenant } from './sync/synchroniser'
@@ -8,7 +8,28 @@ import { SeanceScreen } from './features/seance/SeanceScreen'
 import { FinSeanceScreen } from './features/seance/FinSeanceScreen'
 import { ReglagesScreen } from './features/reglages/ReglagesScreen'
 import { SauvegardesScreen } from './features/reglages/SauvegardesScreen'
+import { ExercicesListScreen } from './features/exercices/ExercicesListScreen'
 import type { GroupeMusculaire } from './db/types'
+
+const ExerciceDetailScreen = lazy(() =>
+  import('./features/exercices/ExerciceDetailScreen').then((m) => ({ default: m.ExerciceDetailScreen })),
+)
+const PoidsCorporelScreen = lazy(() =>
+  import('./features/poids/PoidsCorporelScreen').then((m) => ({ default: m.PoidsCorporelScreen })),
+)
+const GroupeDetailScreen = lazy(() =>
+  import('./features/groupes/GroupeDetailScreen').then((m) => ({ default: m.GroupeDetailScreen })),
+)
+const VueGlobaleScreen = lazy(() =>
+  import('./features/globale/VueGlobaleScreen').then((m) => ({ default: m.VueGlobaleScreen })),
+)
+const ReperesScreen = lazy(() =>
+  import('./features/reperes/ReperesScreen').then((m) => ({ default: m.ReperesScreen })),
+)
+
+function ChargementEcran() {
+  return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
+}
 
 type Vue =
   | { nom: 'chargement' }
@@ -18,6 +39,12 @@ type Vue =
   | { nom: 'finSeance'; seanceId: number }
   | { nom: 'reglages' }
   | { nom: 'sauvegardes' }
+  | { nom: 'exercices' }
+  | { nom: 'exerciceDetail'; exerciceId: number }
+  | { nom: 'groupeDetail'; groupe: GroupeMusculaire }
+  | { nom: 'globale' }
+  | { nom: 'reperes' }
+  | { nom: 'poids' }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -53,6 +80,11 @@ function App() {
       <AccueilScreen
         onContinuer={(groupes) => setVue({ nom: 'selection', groupes })}
         onOuvrirReglages={() => setVue({ nom: 'reglages' })}
+        onOuvrirExercices={() => setVue({ nom: 'exercices' })}
+        onOuvrirReperes={() => setVue({ nom: 'reperes' })}
+        onOuvrirPoids={() => setVue({ nom: 'poids' })}
+        onOuvrirGlobale={() => setVue({ nom: 'globale' })}
+        onOuvrirGroupe={(groupe) => setVue({ nom: 'groupeDetail', groupe })}
       />
     )
   }
@@ -97,7 +129,56 @@ function App() {
     )
   }
 
-  return <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+  if (vue.nom === 'sauvegardes') {
+    return <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+  }
+
+  if (vue.nom === 'exercices') {
+    return (
+      <ExercicesListScreen
+        onRetour={() => setVue({ nom: 'accueil' })}
+        onOuvrirExercice={(exerciceId) => setVue({ nom: 'exerciceDetail', exerciceId })}
+      />
+    )
+  }
+
+  if (vue.nom === 'exerciceDetail') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <ExerciceDetailScreen exerciceId={vue.exerciceId} onRetour={() => setVue({ nom: 'exercices' })} />
+      </Suspense>
+    )
+  }
+
+  if (vue.nom === 'groupeDetail') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <GroupeDetailScreen groupe={vue.groupe} onRetour={() => setVue({ nom: 'accueil' })} />
+      </Suspense>
+    )
+  }
+
+  if (vue.nom === 'globale') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <VueGlobaleScreen onRetour={() => setVue({ nom: 'accueil' })} />
+      </Suspense>
+    )
+  }
+
+  if (vue.nom === 'reperes') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <ReperesScreen onRetour={() => setVue({ nom: 'accueil' })} />
+      </Suspense>
+    )
+  }
+
+  return (
+    <Suspense fallback={<ChargementEcran />}>
+      <PoidsCorporelScreen onRetour={() => setVue({ nom: 'accueil' })} />
+    </Suspense>
+  )
 }
 
 export default App

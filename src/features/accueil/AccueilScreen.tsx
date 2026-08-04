@@ -11,6 +11,11 @@ import type { GroupeMusculaire } from '../../db/types'
 interface Props {
   onContinuer: (groupes: GroupeMusculaire[]) => void
   onOuvrirReglages: () => void
+  onOuvrirExercices: () => void
+  onOuvrirReperes: () => void
+  onOuvrirPoids: () => void
+  onOuvrirGlobale: () => void
+  onOuvrirGroupe: (groupe: GroupeMusculaire) => void
 }
 
 const CLASSES_COULEUR_VOLUME: Record<string, string> = {
@@ -20,7 +25,15 @@ const CLASSES_COULEUR_VOLUME: Record<string, string> = {
   violet: 'border-violet-700 bg-violet-950 text-violet-300',
 }
 
-export function AccueilScreen({ onContinuer, onOuvrirReglages }: Props) {
+export function AccueilScreen({
+  onContinuer,
+  onOuvrirReglages,
+  onOuvrirExercices,
+  onOuvrirReperes,
+  onOuvrirPoids,
+  onOuvrirGlobale,
+  onOuvrirGroupe,
+}: Props) {
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
   const [tableau, setTableau] = useState<TableauBordSemaine | null>(null)
@@ -102,6 +115,21 @@ export function AccueilScreen({ onContinuer, onOuvrirReglages }: Props) {
 
       {maintenant.getDay() === 0 && <RecapClotureSemaine />}
 
+      <div className="mb-4 flex gap-2 overflow-x-auto">
+        <button type="button" onClick={onOuvrirExercices} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+          Exercices
+        </button>
+        <button type="button" onClick={onOuvrirReperes} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+          ★ Repères
+        </button>
+        <button type="button" onClick={onOuvrirPoids} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+          Poids de corps
+        </button>
+        <button type="button" onClick={onOuvrirGlobale} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+          Vue globale
+        </button>
+      </div>
+
       <div className="mb-2 flex items-center justify-between">
         <h2 className="text-sm font-medium text-slate-400">Groupes musculaires</h2>
         <button
@@ -120,11 +148,13 @@ export function AccueilScreen({ onContinuer, onOuvrirReglages }: Props) {
           const selectionne = selection.includes(etat.groupe)
           const reste = stat ? Math.max(0, stat.cibleSeries - stat.seriesEfficaces) : null
           return (
-            <button
+            <div
               key={etat.groupe}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => basculer(etat.groupe)}
-              className={`flex min-h-14 items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition ${couleur} ${
+              onKeyDown={(e) => e.key === 'Enter' && basculer(etat.groupe)}
+              className={`flex min-h-14 cursor-pointer items-center justify-between rounded-xl border-2 px-4 py-3 text-left transition ${couleur} ${
                 selectionne ? 'ring-2 ring-accent' : ''
               }`}
             >
@@ -136,20 +166,33 @@ export function AccueilScreen({ onContinuer, onOuvrirReglages }: Props) {
                     : formatDelaiRelatif(etat.joursDepuisDerniere)}
                 </p>
               </div>
-              <div className="text-right text-sm opacity-80">
-                {stat && stat.totalSeries !== stat.seriesEfficaces ? (
+              <div className="flex items-center gap-2">
+                <div className="text-right text-sm opacity-80">
+                  {stat && stat.totalSeries !== stat.seriesEfficaces ? (
+                    <p>
+                      {stat.seriesEfficaces} eff. / {stat.totalSeries} séries
+                    </p>
+                  ) : (
+                    <p>{stat?.seriesEfficaces ?? 0} séries</p>
+                  )}
                   <p>
-                    {stat.seriesEfficaces} eff. / {stat.totalSeries} séries
+                    cible {stat?.cibleSeries ?? '—'}
+                    {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
                   </p>
-                ) : (
-                  <p>{stat?.seriesEfficaces ?? 0} séries</p>
-                )}
-                <p>
-                  cible {stat?.cibleSeries ?? '—'}
-                  {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
-                </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onOuvrirGroupe(etat.groupe)
+                  }}
+                  className="flex min-h-9 min-w-9 items-center justify-center rounded-lg border border-current text-xs opacity-70"
+                  aria-label={`Statistiques ${etat.groupe}`}
+                >
+                  📈
+                </button>
               </div>
-            </button>
+            </div>
           )
         })}
       </div>

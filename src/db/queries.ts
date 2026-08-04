@@ -1,4 +1,5 @@
 import { db } from './schema'
+import { ordrePriorite } from './types'
 import type { Exercice, GroupeMusculaire, Seance, SeanceExercice, Serie } from './types'
 import { estDansSemaine, joursDepuis } from '../utils/dates'
 import { serieEstEfficace } from './rir'
@@ -73,7 +74,9 @@ export async function seriesEfficacesSemaine(groupe: GroupeMusculaire): Promise<
 }
 
 export async function etatsGroupes(): Promise<EtatGroupe[]> {
-  const cibles = await db.ciblesVolume.toArray()
+  const cibles = (await db.ciblesVolume.toArray()).sort(
+    (a, b) => ordrePriorite(a.groupeMusculaire) - ordrePriorite(b.groupeMusculaire),
+  )
   const resultats: EtatGroupe[] = []
 
   for (const cible of cibles) {

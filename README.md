@@ -90,6 +90,6 @@ explicite).
 - [x] Phase 3 : écran de séance
 - [x] Phase 4 : progression et coach
 - [x] Phase 5 : synchronisation GitHub
-- [ ] Phase 6 : tableau de bord
-- [ ] Phase 7 : graphiques
+- [x] Phase 6 : tableau de bord
+- [x] Phase 7 : graphiques
 - [ ] Phase 8 : finitions

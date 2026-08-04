@@ -1,4 +1,5 @@
 import { db } from './schema'
+import { ordrePriorite } from './types'
 import type { GroupeMusculaire } from './types'
 import { estDansSemaine, debutSemaine } from '../utils/dates'
 import { serieEstEfficace } from './rir'
@@ -25,12 +26,15 @@ export interface TableauBordSemaine {
 }
 
 async function chargerDonneesSemaine(reference: Date) {
-  const [cibles, tousExercices, toutesSeances, tousSeanceExercices] = await Promise.all([
+  const [ciblesBrutes, tousExercices, toutesSeances, tousSeanceExercices] = await Promise.all([
     db.ciblesVolume.toArray(),
     db.exercices.toArray(),
     db.seances.toArray(),
     db.seanceExercices.toArray(),
   ])
+  const cibles = ciblesBrutes.sort(
+    (a, b) => ordrePriorite(a.groupeMusculaire) - ordrePriorite(b.groupeMusculaire),
+  )
 
   const seancesSemaine = toutesSeances.filter((s) => estDansSemaine(s.date, reference))
   const seanceIdsSemaine = new Set(seancesSemaine.map((s) => s.id))
@@ -161,7 +165,7 @@ async function regulariteSurQuatreSemaines(reference: Date): Promise<{ faites: n
   return { faites, cible: cibleSemaine * 4 }
 }
 
-async function vitessePriseDeMasse(reference: Date): Promise<number | null> {
+export async function vitessePriseDeMasse(reference: Date): Promise<number | null> {
   const debut = new Date(reference)
   debut.setDate(debut.getDate() - 28)
   const mesures = (await db.poidsCorporel.toArray())

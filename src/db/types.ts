@@ -19,6 +19,22 @@ export const GROUPES_MUSCULAIRES: GroupeMusculaire[] = [
   'Abdominaux',
 ]
 
+// Ordre de priorité choisi par l'utilisateur pour les cibles de volume par défaut.
+export const GROUPES_PAR_PRIORITE: GroupeMusculaire[] = [
+  'Pectoraux',
+  'Biceps',
+  'Triceps',
+  'Dos',
+  'Épaules',
+  'Cuisses',
+  'Mollets',
+  'Abdominaux',
+]
+
+export function ordrePriorite(groupe: GroupeMusculaire): number {
+  return GROUPES_PAR_PRIORITE.indexOf(groupe)
+}
+
 export type TypeCharge = 'barre' | 'haltères' | 'machine' | 'poulie' | 'poids du corps' | 'lestée'
 
 export const TYPES_CHARGE: TypeCharge[] = [
