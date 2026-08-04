@@ -30,6 +30,12 @@ const VueGlobaleScreen = lazy(() =>
 const ReperesScreen = lazy(() =>
   import('./features/reperes/ReperesScreen').then((m) => ({ default: m.ReperesScreen })),
 )
+const HistoriqueScreen = lazy(() =>
+  import('./features/historique/HistoriqueScreen').then((m) => ({ default: m.HistoriqueScreen })),
+)
+const HistoriqueDetailScreen = lazy(() =>
+  import('./features/historique/HistoriqueDetailScreen').then((m) => ({ default: m.HistoriqueDetailScreen })),
+)
 
 function ChargementEcran() {
   return <div className="flex min-h-dvh items-center justify-center text-slate-500">Chargement…</div>
@@ -50,6 +56,8 @@ type Vue =
   | { nom: 'reperes' }
   | { nom: 'poids' }
   | { nom: 'calculateur' }
+  | { nom: 'historique' }
+  | { nom: 'historiqueDetail'; seanceId: number }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -90,6 +98,7 @@ function App() {
         onOuvrirPoids={() => setVue({ nom: 'poids' })}
         onOuvrirGlobale={() => setVue({ nom: 'globale' })}
         onOuvrirGroupe={(groupe) => setVue({ nom: 'groupeDetail', groupe })}
+        onOuvrirHistorique={() => setVue({ nom: 'historique' })}
       />
     )
   }
@@ -188,9 +197,32 @@ function App() {
     )
   }
 
+  if (vue.nom === 'poids') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <PoidsCorporelScreen onRetour={() => setVue({ nom: 'accueil' })} />
+      </Suspense>
+    )
+  }
+
+  if (vue.nom === 'historique') {
+    return (
+      <Suspense fallback={<ChargementEcran />}>
+        <HistoriqueScreen
+          onRetour={() => setVue({ nom: 'accueil' })}
+          onOuvrirSeance={(seanceId) => setVue({ nom: 'historiqueDetail', seanceId })}
+        />
+      </Suspense>
+    )
+  }
+
   return (
     <Suspense fallback={<ChargementEcran />}>
-      <PoidsCorporelScreen onRetour={() => setVue({ nom: 'accueil' })} />
+      <HistoriqueDetailScreen
+        seanceId={vue.seanceId}
+        onRetour={() => setVue({ nom: 'historique' })}
+        onSupprimee={() => setVue({ nom: 'historique' })}
+      />
     </Suspense>
   )
 }

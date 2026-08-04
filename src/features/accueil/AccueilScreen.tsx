@@ -16,6 +16,7 @@ interface Props {
   onOuvrirPoids: () => void
   onOuvrirGlobale: () => void
   onOuvrirGroupe: (groupe: GroupeMusculaire) => void
+  onOuvrirHistorique: () => void
 }
 
 const CLASSES_COULEUR_VOLUME: Record<string, string> = {
@@ -33,6 +34,7 @@ export function AccueilScreen({
   onOuvrirPoids,
   onOuvrirGlobale,
   onOuvrirGroupe,
+  onOuvrirHistorique,
 }: Props) {
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
@@ -127,6 +129,9 @@ export function AccueilScreen({
         </button>
         <button type="button" onClick={onOuvrirGlobale} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
           Vue globale
+        </button>
+        <button type="button" onClick={onOuvrirHistorique} className="min-h-10 shrink-0 rounded-lg border border-slate-700 px-3 text-sm text-slate-300">
+          Historique
         </button>
       </div>
 
