@@ -3,13 +3,15 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { etatsGroupes } from '../../db/queries'
 import { couleurDelai, CLASSES_COULEUR_DELAI } from '../../utils/etatGroupe'
 import { formatDelaiRelatif } from '../../utils/dates'
+import { IndicateurSync } from '../reglages/IndicateurSync'
 import type { GroupeMusculaire } from '../../db/types'
 
 interface Props {
   onContinuer: (groupes: GroupeMusculaire[]) => void
+  onOuvrirReglages: () => void
 }
 
-export function AccueilScreen({ onContinuer }: Props) {
+export function AccueilScreen({ onContinuer, onOuvrirReglages }: Props) {
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
 
@@ -42,15 +44,26 @@ export function AccueilScreen({ onContinuer }: Props) {
       className="flex min-h-dvh flex-col px-4 pb-28"
       style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
     >
-      <header className="mb-4 flex items-center justify-between">
+      <header className="mb-4 flex items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Musculation</h1>
-        <button
-          type="button"
-          onClick={() => setTri((t) => !t)}
-          className="min-h-[44px] rounded-lg border border-slate-700 px-3 text-sm text-slate-300"
-        >
-          Trier par délai
-        </button>
+        <div className="flex items-center gap-2">
+          <IndicateurSync onClick={onOuvrirReglages} />
+          <button
+            type="button"
+            onClick={() => setTri((t) => !t)}
+            className="min-h-[44px] rounded-lg border border-slate-700 px-3 text-sm text-slate-300"
+          >
+            Trier par délai
+          </button>
+          <button
+            type="button"
+            onClick={onOuvrirReglages}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-700 text-slate-300"
+            aria-label="Réglages"
+          >
+            ⚙
+          </button>
+        </div>
       </header>
 
       <div className="flex flex-col gap-3">

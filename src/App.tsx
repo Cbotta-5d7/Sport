@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { initialiserDonneesParDefaut } from './db/seed'
 import { seanceEnCours } from './db/queries'
+import { synchroniserMaintenant } from './sync/synchroniser'
 import { AccueilScreen } from './features/accueil/AccueilScreen'
 import { SelectionScreen } from './features/selection/SelectionScreen'
 import { SeanceScreen } from './features/seance/SeanceScreen'
 import { FinSeanceScreen } from './features/seance/FinSeanceScreen'
+import { ReglagesScreen } from './features/reglages/ReglagesScreen'
+import { SauvegardesScreen } from './features/reglages/SauvegardesScreen'
 import type { GroupeMusculaire } from './db/types'
 
 type Vue =
@@ -13,6 +16,8 @@ type Vue =
   | { nom: 'selection'; groupes: GroupeMusculaire[] }
   | { nom: 'seance'; seanceId: number }
   | { nom: 'finSeance'; seanceId: number }
+  | { nom: 'reglages' }
+  | { nom: 'sauvegardes' }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -26,6 +31,7 @@ function App() {
       }
       const enCours = await seanceEnCours()
       setVue(enCours ? { nom: 'seance', seanceId: enCours.id } : { nom: 'accueil' })
+      synchroniserMaintenant().catch(() => {})
     }
     demarrer().catch((e) => setErreur(String(e)))
   }, [])
@@ -43,7 +49,12 @@ function App() {
   }
 
   if (vue.nom === 'accueil') {
-    return <AccueilScreen onContinuer={(groupes) => setVue({ nom: 'selection', groupes })} />
+    return (
+      <AccueilScreen
+        onContinuer={(groupes) => setVue({ nom: 'selection', groupes })}
+        onOuvrirReglages={() => setVue({ nom: 'reglages' })}
+      />
+    )
   }
 
   if (vue.nom === 'selection') {
@@ -65,7 +76,28 @@ function App() {
     )
   }
 
-  return <FinSeanceScreen seanceId={vue.seanceId} onFermer={() => setVue({ nom: 'accueil' })} />
+  if (vue.nom === 'finSeance') {
+    return (
+      <FinSeanceScreen
+        seanceId={vue.seanceId}
+        onFermer={() => {
+          synchroniserMaintenant().catch(() => {})
+          setVue({ nom: 'accueil' })
+        }}
+      />
+    )
+  }
+
+  if (vue.nom === 'reglages') {
+    return (
+      <ReglagesScreen
+        onRetour={() => setVue({ nom: 'accueil' })}
+        onOuvrirSauvegardes={() => setVue({ nom: 'sauvegardes' })}
+      />
+    )
+  }
+
+  return <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
 }
 
 export default App

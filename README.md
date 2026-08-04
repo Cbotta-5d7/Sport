@@ -40,7 +40,7 @@ Dans les réglages du dépôt public : **Settings > Pages > Source**, choisir
 automatiquement à chaque push sur `main`. Le site est ensuite disponible à
 `https://<utilisateur>.github.io/sport/`.
 
-### Création du jeton d'accès GitHub (à faire en phase 5)
+### Création du jeton d'accès GitHub
 
 Le jeton sert uniquement à ce que l'application écrive dans le dépôt privé de
 données. Il ne doit jamais être partagé, ni commité, ni collé dans une
@@ -51,9 +51,22 @@ conversation. Procédure :
 2. Repository access : **Only select repositories** → choisir uniquement le
    dépôt privé de données (`sport-data`).
 3. Permissions : **Contents : Read and write**. Rien d'autre.
-4. Générer, puis coller le jeton dans l'application : Réglages > jeton GitHub.
-   Il est stocké uniquement en local (IndexedDB), jamais envoyé ailleurs qu'à
-   l'API GitHub.
+4. Générer, puis dans l'application : Réglages, renseigner le propriétaire
+   (ton nom d'utilisateur GitHub), le nom du dépôt privé, et coller le jeton.
+   Tout est stocké uniquement en local (IndexedDB), jamais envoyé ailleurs
+   qu'à l'API GitHub, jamais commité dans le dépôt public.
+
+### Fonctionnement de la synchronisation
+
+- Se déclenche automatiquement à la fin de chaque séance, et au démarrage de
+  l'application.
+- Bouton « Synchroniser maintenant » disponible dans Réglages pour forcer une
+  synchronisation.
+- Règle de résolution de conflit : la version la plus récente (comparaison
+  d'horodatage) l'emporte.
+- L'indicateur en haut d'écran est vert (moins de 24 h), orange (24 h à 3
+  jours) ou rouge (plus de 3 jours) selon l'ancienneté de la dernière
+  synchronisation réussie.
 
 ## Installation sur Android (Pixel, Chrome)
 
@@ -63,7 +76,7 @@ conversation. Procédure :
    standalone, sans barre d'adresse.
 4. Elle fonctionne entièrement hors ligne après le premier chargement.
 
-## Procédure de restauration (phase 5)
+## Procédure de restauration
 
 Dans Réglages > Sauvegardes : liste des 20 derniers commits du dépôt privé
 avec leur date. Choisir un commit et confirmer pour restaurer son contenu
@@ -73,10 +86,10 @@ explicite).
 ## Statut du projet
 
 - [x] Phase 1 : socle technique (Vite, PWA, Dexie, déploiement Pages)
-- [ ] Phase 2 : sélection de séance
-- [ ] Phase 3 : écran de séance
-- [ ] Phase 4 : progression et coach
-- [ ] Phase 5 : synchronisation GitHub
+- [x] Phase 2 : sélection de séance
+- [x] Phase 3 : écran de séance
+- [x] Phase 4 : progression et coach
+- [x] Phase 5 : synchronisation GitHub
 - [ ] Phase 6 : tableau de bord
 - [ ] Phase 7 : graphiques
 - [ ] Phase 8 : finitions

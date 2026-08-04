@@ -26,6 +26,7 @@ import { BlocTonnage } from './BlocTonnage'
 import { ModaleChoixExercice } from './ModaleChoixExercice'
 import { ModaleNoteSeance } from './ModaleNoteSeance'
 import { AlerteFinSeance, type AlerteGroupe } from './AlerteFinSeance'
+import { IndicateurSync } from '../reglages/IndicateurSync'
 
 interface Props {
   seanceId: number
@@ -348,6 +349,7 @@ export function SeanceScreen({ seanceId, onTerminee }: Props) {
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-slate-50">{formatDuree(dureeSec)}</span>
           <div className="flex items-center gap-2">
+            <IndicateurSync />
             <button
               type="button"
               onClick={() => setModaleNote(true)}
