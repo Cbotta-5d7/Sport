@@ -139,6 +139,21 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
     0,
   )
 
+  const compteursParExercice = useLiveQuery(
+    async () => {
+      const entries = await Promise.all(
+        seanceExercices.map(async (se) => {
+          const [prevu, series] = await Promise.all([lirePrevisionSeries(se.id), seriesPourSeanceExercice(se.id)])
+          const fait = series.filter((s) => s.type !== 'échauffement').length
+          return [se.id, { fait, prevu: prevu ?? se.exercice.seriesCibleDefaut }] as const
+        }),
+      )
+      return new Map(entries)
+    },
+    [seanceExercices.map((se) => se.id).join(',')],
+    new Map<number, { fait: number; prevu: number }>(),
+  )
+
   if (!seance || seanceExercices.length === 0 || !seActuel) {
     return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
@@ -405,21 +420,29 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
       </header>
 
       <div className="flex shrink-0 gap-2 overflow-x-auto border-b border-slate-200 bg-white px-2 py-2">
-        {seanceExercices.map((se, i) => (
-          <button
-            key={se.id}
-            type="button"
-            onClick={() => setOngletActif(i)}
-            onPointerDown={() => demarrerAppuiLong(i)}
-            onPointerUp={annulerAppuiLong}
-            onPointerLeave={annulerAppuiLong}
-            className={`min-h-11 shrink-0 rounded-xl border px-3 text-sm select-none ${
-              i === indexActif ? 'border-accent bg-orange-50 text-accent' : 'border-slate-200 text-slate-500'
-            } ${se.statut === 'fait' ? 'opacity-60' : ''} ${se.statut === 'passe' ? 'opacity-30 line-through' : ''}`}
-          >
-            {se.exercice.nom}
-          </button>
-        ))}
+        {seanceExercices.map((se, i) => {
+          const compteur = compteursParExercice.get(se.id)
+          return (
+            <button
+              key={se.id}
+              type="button"
+              onClick={() => setOngletActif(i)}
+              onPointerDown={() => demarrerAppuiLong(i)}
+              onPointerUp={annulerAppuiLong}
+              onPointerLeave={annulerAppuiLong}
+              className={`flex min-h-11 shrink-0 flex-col items-center rounded-xl border px-3 py-1 text-sm select-none ${
+                i === indexActif ? 'border-accent bg-orange-50 text-accent' : 'border-slate-200 text-slate-500'
+              } ${se.statut === 'fait' ? 'opacity-60' : ''} ${se.statut === 'passe' ? 'opacity-30 line-through' : ''}`}
+            >
+              <span>{se.exercice.nom}</span>
+              {compteur && (
+                <span className={`text-xs font-semibold ${compteur.fait >= compteur.prevu ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  {compteur.fait}/{compteur.prevu}
+                </span>
+              )}
+            </button>
+          )
+        })}
         <button
           type="button"
           onClick={() => setModaleChoix('ajouter')}
@@ -442,6 +465,9 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
           touchStartX.current = null
         }}
       >
+        <span className="mb-2 inline-flex min-h-8 items-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white">
+          Série {seriesActuelles.length}/{prevision ?? seActuel.exercice.seriesCibleDefaut}
+        </span>
         <p className="mb-2 text-3xl font-bold text-slate-900">{texteConsigne(suggestion)}</p>
         {suggestion.regle !== 'premiere_fois' && (
           <p className="mb-4 text-sm text-slate-500">{texteCommentaire(suggestion, dernieresTravail)}</p>
