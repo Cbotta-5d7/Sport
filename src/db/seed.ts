@@ -106,6 +106,9 @@ const REGLAGES_DEPART: Record<string, string> = {
   githubProprietaire: '',
   githubDepot: '',
   githubJeton: '',
+  seancesCibleParSemaine: '3',
+  vitessePriseDeMasseCibleMinGSemaine: '200',
+  vitessePriseDeMasseCibleMaxGSemaine: '400',
 }
 
 export async function initialiserDonneesParDefaut(): Promise<void> {

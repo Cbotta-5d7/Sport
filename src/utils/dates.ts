@@ -46,6 +46,10 @@ export function formatDateLongueFR(date: Date): string {
   return `${JOURS[date.getDay()]} ${date.getDate()} ${MOIS[date.getMonth()]}`
 }
 
+export function nomJourSemaineFR(date: Date): string {
+  return JOURS[date.getDay()]
+}
+
 export function formatPlageSemaineFR(reference = new Date()): string {
   const debut = debutSemaine(reference)
   const fin = new Date(debut)
