@@ -4,14 +4,14 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/sport/',
+  base: '/Sport/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icons/apple-touch-icon.png'],
       manifest: {
-        id: '/sport/',
+        id: '/Sport/',
         name: 'Musculation',
         short_name: 'Muscu',
         description: 'Suivi personnel de musculation',
@@ -19,8 +19,8 @@ export default defineConfig({
         background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/sport/',
-        scope: '/sport/',
+        start_url: '/Sport/',
+        scope: '/Sport/',
         lang: 'fr',
         icons: [
           {
@@ -43,7 +43,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        navigateFallback: '/sport/index.html',
+        navigateFallback: '/Sport/index.html',
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.origin === 'https://api.github.com',

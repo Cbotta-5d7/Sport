@@ -38,7 +38,8 @@ npm run lint      # vérifie le code
 Dans les réglages du dépôt public : **Settings > Pages > Source**, choisir
 **GitHub Actions**. Le workflow `.github/workflows/deploy.yml` déploie
 automatiquement à chaque push sur `main`. Le site est ensuite disponible à
-`https://<utilisateur>.github.io/sport/`.
+`https://cbotta-5d7.github.io/Sport/` (le nom du dépôt est sensible à la
+casse dans l'URL, respecter la majuscule).
 
 ### Création du jeton d'accès GitHub
 
@@ -70,7 +71,7 @@ conversation. Procédure :
 
 ## Installation sur Android (Pixel, Chrome)
 
-1. Ouvrir `https://<utilisateur>.github.io/sport/` dans Chrome.
+1. Ouvrir `https://cbotta-5d7.github.io/Sport/` dans Chrome.
 2. Menu (⋮) > **Ajouter à l'écran d'accueil**.
 3. Ouvrir l'application depuis l'icône ajoutée : elle se lance en mode
    standalone, sans barre d'adresse.
