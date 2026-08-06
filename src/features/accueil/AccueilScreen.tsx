@@ -22,7 +22,8 @@ interface Props {
 const HEURES_RECUPERATION = 50
 
 const CLASSES_DISPONIBILITE = {
-  disponible: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+  complete: 'border-emerald-300 bg-emerald-50 text-emerald-700',
+  disponible: 'border-amber-300 bg-amber-50 text-amber-700',
   indispo: 'border-red-300 bg-red-50 text-red-700',
 }
 
@@ -149,8 +150,9 @@ export function AccueilScreen({
       <div className="flex flex-col gap-3">
         {etatsTries.map((etat) => {
           const stat = statsParGroupe.get(etat.groupe)
+          const quotaAtteint = stat ? stat.seriesEfficaces >= stat.cibleSeries : false
           const disponible = etat.heuresDepuisDerniere === null || etat.heuresDepuisDerniere >= HEURES_RECUPERATION
-          const couleur = CLASSES_DISPONIBILITE[disponible ? 'disponible' : 'indispo']
+          const couleur = CLASSES_DISPONIBILITE[quotaAtteint ? 'complete' : disponible ? 'disponible' : 'indispo']
           const selectionne = selection.includes(etat.groupe)
           const reste = stat ? Math.max(0, stat.cibleSeries - stat.seriesEfficaces) : null
           const progression = stat && stat.cibleSeries > 0 ? Math.min(100, (stat.seriesEfficaces / stat.cibleSeries) * 100) : 0
