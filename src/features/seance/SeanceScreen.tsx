@@ -396,10 +396,10 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
           </p>
           <button
             type="button"
-            onClick={() => setConfirmationAnnulation(true)}
+            onClick={() => (seance.dejaTerminee ? onAnnulee() : setConfirmationAnnulation(true))}
             className="min-h-8 rounded-lg px-2 text-xs text-slate-400"
           >
-            Annuler la séance
+            {seance.dejaTerminee ? 'Quitter' : 'Annuler la séance'}
           </button>
         </div>
         {cibleGroupeActif && (

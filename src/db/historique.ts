@@ -42,6 +42,7 @@ export async function reprendreSeance(seanceId: number): Promise<void> {
     statut: 'en_cours',
     dateFin: null,
     dateDebut: new Date(Date.now() - seance.dureeSec * 1000).toISOString(),
+    dejaTerminee: true,
   })
 }
 

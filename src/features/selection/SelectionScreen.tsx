@@ -115,6 +115,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
       dureeSec: 0,
       statut: 'en_cours',
       notes: '',
+      dejaTerminee: false,
     })
     for (const [index, e] of exercicesCoches.entries()) {
       const seanceExerciceId = await db.seanceExercices.add({

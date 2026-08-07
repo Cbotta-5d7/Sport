@@ -201,6 +201,27 @@ export class MusculationDB extends Dexie {
           { groupeMusculaire: 'Ischio-jambiers', seriesCibleSemaine: 6, seancesCibleSemaine: 1 },
         ])
       })
+
+    this.version(3)
+      .stores({
+        exercices: '++id, nom, groupeMusculaire, archive, estRepere',
+        programmes: '++id, ordre, archive',
+        programmeExercices: '++id, programmeId, exerciceId, ordre',
+        seances: '++id, date, statut',
+        seanceExercices: '++id, seanceId, exerciceId, ordre, statut',
+        series: '++id, seanceExerciceId, numeroSerie, horodatage',
+        ciblesVolume: 'groupeMusculaire',
+        poidsCorporel: '++id, date',
+        reglages: 'cle',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('seances')
+          .toCollection()
+          .modify((s: Seance) => {
+            s.dejaTerminee = false
+          })
+      })
   }
 }
 

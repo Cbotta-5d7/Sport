@@ -97,6 +97,7 @@ export interface Seance {
   dureeSec: number
   statut: StatutSeance
   notes: string
+  dejaTerminee: boolean
 }
 
 export interface SeanceExercice {
