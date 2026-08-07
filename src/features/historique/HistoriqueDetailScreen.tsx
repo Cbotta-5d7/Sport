@@ -4,7 +4,7 @@ import { db } from '../../db/schema'
 import type { Serie, TypeSerie } from '../../db/types'
 import { seanceExercicesAvecDetails, type SeanceExerciceAvecExercice } from '../../db/queries'
 import { supprimerSeance, reprendreSeance } from '../../db/historique'
-import { formatDateLongueFR } from '../../utils/dates'
+import { formatDateLongueFR, nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { OPTIONS_RIR } from '../../db/rir'
 import { ClavierNumerique } from '../seance/ClavierNumerique'
@@ -52,6 +52,24 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
 
   async function supprimerSerie(id: number) {
     await db.series.delete(id)
+  }
+
+  async function ajouterSerie(se: SeanceExerciceAvecExercice) {
+    const seriesExo = seriesToutes.filter((s) => s.seanceExerciceId === se.id)
+    const derniere = seriesExo[seriesExo.length - 1]
+    const numeroSerie = seriesExo.reduce((max, s) => Math.max(max, s.numeroSerie), 0) + 1
+    await db.series.add({
+      seanceExerciceId: se.id,
+      numeroSerie,
+      poidsKg: derniere?.poidsKg ?? 0,
+      reps: derniere?.reps ?? 0,
+      type: 'normale',
+      rir: null,
+      reposReelSec: null,
+      validee: true,
+      estRecord: false,
+      horodatage: nowIso(),
+    })
   }
 
   async function changerChamp(serie: Serie, champ: 'poidsKg' | 'reps', valeur: number) {
@@ -134,7 +152,6 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
 
       {seanceExercices.map((se) => {
         const series = seriesToutes.filter((s) => s.seanceExerciceId === se.id).sort((a, b) => a.numeroSerie - b.numeroSerie)
-        if (series.length === 0) return null
         return (
           <div key={se.id} className="mb-5">
             <h2 className="mb-2 text-sm font-medium text-slate-600">{se.exercice.nom}</h2>
@@ -196,6 +213,13 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
                 </div>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => ajouterSerie(se)}
+              className="mt-2 min-h-10 w-full rounded-xl border border-dashed border-slate-300 text-sm text-slate-500"
+            >
+              + Ajouter une série
+            </button>
           </div>
         )
       })}

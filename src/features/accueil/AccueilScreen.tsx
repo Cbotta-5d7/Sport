@@ -19,12 +19,12 @@ interface Props {
   onOuvrirHistorique: () => void
 }
 
-const HEURES_RECUPERATION = 50
+const HEURES_RECUPERATION = 72
 
 const CLASSES_DISPONIBILITE = {
-  complete: 'border-emerald-300 bg-emerald-50 text-emerald-700',
-  disponible: 'border-amber-300 bg-amber-50 text-amber-700',
-  indispo: 'border-red-300 bg-red-50 text-red-700',
+  complete: 'bg-emerald-50 text-emerald-700',
+  disponible: 'bg-amber-50 text-amber-700',
+  indispo: 'bg-red-50 text-red-700',
 }
 
 export function AccueilScreen({
@@ -163,7 +163,7 @@ export function AccueilScreen({
               tabIndex={0}
               onClick={() => basculer(etat.groupe)}
               onKeyDown={(e) => e.key === 'Enter' && basculer(etat.groupe)}
-              className={`flex cursor-pointer flex-col gap-2 rounded-2xl border-2 px-4 py-3 text-left transition ${couleur} ${
+              className={`flex cursor-pointer flex-col gap-2 rounded-2xl border border-slate-200 px-4 py-3 text-left transition ${couleur} ${
                 selectionne ? 'ring-2 ring-accent' : ''
               }`}
             >
