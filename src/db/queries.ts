@@ -23,13 +23,15 @@ export async function derniereSeanceTerminee(groupe: GroupeMusculaire): Promise<
   const idsExercices = await exercicesIdsParGroupe(groupe)
   if (idsExercices.length === 0) return null
 
+  // .reverse() ici inverse le sens de tri de sortBy (descendant, plus récent en premier) —
+  // ne PAS re-reverse le tableau résultat, sinon on retombe sur le plus ancien en premier.
   const seances = await db.seances
     .where('statut')
     .equals('terminee')
     .reverse()
     .sortBy('date')
 
-  for (const seance of seances.reverse()) {
+  for (const seance of seances) {
     const seanceExercices = await db.seanceExercices
       .where('seanceId')
       .equals(seance.id!)
