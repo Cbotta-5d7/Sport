@@ -24,7 +24,7 @@ export function MinuteurRepos() {
       {flash && <div className="pointer-events-none fixed inset-0 z-50 bg-emerald-400/70" />}
       <span
         aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-20 select-none text-center text-6xl font-bold text-slate-900/10"
+        className="pointer-events-none fixed inset-x-0 top-20 select-none text-center text-[7.5rem] font-bold leading-none text-red-600/10"
       >
         {minutes}:{String(secondes).padStart(2, '0')}
       </span>
