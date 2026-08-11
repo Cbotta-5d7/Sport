@@ -387,9 +387,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
     <div className="flex h-dvh flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
-          <span className="text-lg font-semibold text-slate-900">
-            {formatDuree(dureeSec)} <MinuteurRepos />
-          </span>
+          <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>
+          <MinuteurRepos />
           <div className="flex items-center gap-2">
             <IndicateurSync />
             <button
