@@ -11,7 +11,7 @@ import {
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
 import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
 import { detecterRecord } from '../../db/records'
-import { supprimerSeance } from '../../db/historique'
+import { supprimerSeance, supprimerSeanceExercice } from '../../db/historique'
 import { nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { calculerSuggestion, texteConsigne, texteCommentaire } from '../../utils/progression'
@@ -81,6 +81,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
   const [entreeReduite, setEntreeReduite] = useState(false)
   const [confirmationAnnulation, setConfirmationAnnulation] = useState(false)
   const [annulationEnCours, setAnnulationEnCours] = useState(false)
+  const [confirmationSuppressionExo, setConfirmationSuppressionExo] = useState(false)
 
   useEffect(() => {
     setCoach(null)
@@ -252,6 +253,22 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
     if (indexActif < seanceExercices.length - 1) setOngletActif(indexActif + 1)
   }
 
+  async function supprimerExercice() {
+    if (!seActuel || seanceExercices.length <= 1) return
+    await supprimerSeanceExercice(seActuel.id)
+    setConfirmationSuppressionExo(false)
+    setOngletActif((i) => Math.max(0, Math.min(i, seanceExercices.length - 2)))
+  }
+
+  function demanderSuppressionExercice() {
+    if (!seActuel || seanceExercices.length <= 1) return
+    if (seriesActuelles.length > 0) {
+      setConfirmationSuppressionExo(true)
+    } else {
+      supprimerExercice()
+    }
+  }
+
   async function ajouterExercice(exercice: Exercice) {
     const ordre = Math.max(...seanceExercices.map((s) => s.ordre), -1) + 1
     const nouvelSEId = await db.seanceExercices.add({
@@ -321,7 +338,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
         const series = await seriesPourSeanceExercice(se.id)
         const fait = series.filter((s) => s.type !== 'échauffement').length
         const prevu = (await lirePrevisionSeries(se.id)) ?? fait
-        if (fait < prevu) {
+        if (fait === 0) {
           exercicesIncomplets.push({ nom: se.exercice.nom, fait, prevu })
         }
       }
@@ -547,6 +564,15 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
           >
             Passer cet exercice
           </button>
+          <button
+            type="button"
+            onClick={demanderSuppressionExercice}
+            disabled={seanceExercices.length <= 1}
+            aria-label="Supprimer cet exercice"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-red-200 text-red-500 disabled:opacity-30"
+          >
+            🗑
+          </button>
         </div>
       </div>
 
@@ -635,6 +661,39 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
                 className="min-h-14 flex-1 rounded-2xl bg-red-600 font-semibold text-white disabled:opacity-40"
               >
                 Annuler la séance
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmationSuppressionExo && seActuel && (
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/60" onClick={() => setConfirmationSuppressionExo(false)}>
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-5"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Supprimer {seActuel.exercice.nom} ?</h2>
+            <p className="mb-4 text-sm text-slate-500">
+              {seriesActuelles.length > 1
+                ? `${seriesActuelles.length} séries déjà validées sur cet exercice seront effacées.`
+                : '1 série déjà validée sur cet exercice sera effacée.'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmationSuppressionExo(false)}
+                className="min-h-14 flex-1 rounded-2xl border border-slate-300 text-slate-600"
+              >
+                Retour
+              </button>
+              <button
+                type="button"
+                onClick={supprimerExercice}
+                className="min-h-14 flex-1 rounded-2xl bg-red-600 font-semibold text-white"
+              >
+                Supprimer
               </button>
             </div>
           </div>

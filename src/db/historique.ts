@@ -46,6 +46,14 @@ export async function reprendreSeance(seanceId: number): Promise<void> {
   })
 }
 
+export async function supprimerSeanceExercice(seanceExerciceId: number): Promise<void> {
+  await db.transaction('rw', db.seanceExercices, db.series, db.reglages, async () => {
+    await db.series.where('seanceExerciceId').equals(seanceExerciceId).delete()
+    await db.seanceExercices.delete(seanceExerciceId)
+    await db.reglages.delete(`previsionSeries:${seanceExerciceId}`)
+  })
+}
+
 export async function supprimerSeance(seanceId: number): Promise<void> {
   const seanceExercices = await db.seanceExercices.where('seanceId').equals(seanceId).toArray()
   const idsSE = seanceExercices.map((se) => se.id)
