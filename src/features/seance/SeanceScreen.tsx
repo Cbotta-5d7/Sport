@@ -33,6 +33,8 @@ interface Props {
   seanceId: number
   onTerminee: () => void
   onAnnulee: () => void
+  onVoirAccueil: () => void
+  onVoirHistorique: () => void
 }
 
 interface EntreeEnCours {
@@ -41,7 +43,7 @@ interface EntreeEnCours {
   rir: number | null
 }
 
-export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
+export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, onVoirHistorique }: Props) {
   const seance = useLiveQuery(() => db.seances.get(seanceId), [seanceId])
   const seanceExercices = useLiveQuery(() => seanceExercicesAvecDetails(seanceId), [seanceId], [])
 
@@ -386,6 +388,22 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
           <MinuteurRepos />
           <div className="flex items-center gap-2">
             <IndicateurSync />
+            <button
+              type="button"
+              onClick={onVoirAccueil}
+              aria-label="Voir l'accueil"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
+            >
+              🏠
+            </button>
+            <button
+              type="button"
+              onClick={onVoirHistorique}
+              aria-label="Voir l'historique"
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
+            >
+              📜
+            </button>
             <button
               type="button"
               onClick={() => setModaleNote(true)}

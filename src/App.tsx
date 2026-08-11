@@ -1,4 +1,4 @@
-import { useEffect, lazy, Suspense, useState } from 'react'
+import { useEffect, lazy, Suspense, useState, type ReactNode } from 'react'
 import { initialiserDonneesParDefaut } from './db/seed'
 import { seanceEnCours } from './db/queries'
 import { synchroniserMaintenant } from './sync/synchroniser'
@@ -6,6 +6,7 @@ import { AccueilScreen } from './features/accueil/AccueilScreen'
 import { SelectionScreen } from './features/selection/SelectionScreen'
 import { SeanceScreen } from './features/seance/SeanceScreen'
 import { FinSeanceScreen } from './features/seance/FinSeanceScreen'
+import { BanniereSeanceEnCours } from './features/seance/BanniereSeanceEnCours'
 import { ReglagesScreen } from './features/reglages/ReglagesScreen'
 import { SauvegardesScreen } from './features/reglages/SauvegardesScreen'
 import { ExercicesListScreen } from './features/exercices/ExercicesListScreen'
@@ -88,8 +89,10 @@ function App() {
     return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
   }
 
+  let contenu: ReactNode = null
+
   if (vue.nom === 'accueil') {
-    return (
+    contenu = (
       <AccueilScreen
         onContinuer={(groupes) => setVue({ nom: 'selection', groupes })}
         onOuvrirReglages={() => setVue({ nom: 'reglages' })}
@@ -101,30 +104,26 @@ function App() {
         onOuvrirHistorique={() => setVue({ nom: 'historique' })}
       />
     )
-  }
-
-  if (vue.nom === 'selection') {
-    return (
+  } else if (vue.nom === 'selection') {
+    contenu = (
       <SelectionScreen
         groupes={vue.groupes}
         onRetour={() => setVue({ nom: 'accueil' })}
         onDemarrer={(seanceId) => setVue({ nom: 'seance', seanceId })}
       />
     )
-  }
-
-  if (vue.nom === 'seance') {
-    return (
+  } else if (vue.nom === 'seance') {
+    contenu = (
       <SeanceScreen
         seanceId={vue.seanceId}
         onTerminee={() => setVue({ nom: 'finSeance', seanceId: vue.seanceId })}
         onAnnulee={() => setVue({ nom: 'accueil' })}
+        onVoirAccueil={() => setVue({ nom: 'accueil' })}
+        onVoirHistorique={() => setVue({ nom: 'historique' })}
       />
     )
-  }
-
-  if (vue.nom === 'finSeance') {
-    return (
+  } else if (vue.nom === 'finSeance') {
+    contenu = (
       <FinSeanceScreen
         seanceId={vue.seanceId}
         onFermer={() => {
@@ -133,81 +132,61 @@ function App() {
         }}
       />
     )
-  }
-
-  if (vue.nom === 'reglages') {
-    return (
+  } else if (vue.nom === 'reglages') {
+    contenu = (
       <ReglagesScreen
         onRetour={() => setVue({ nom: 'accueil' })}
         onOuvrirSauvegardes={() => setVue({ nom: 'sauvegardes' })}
         onOuvrirCalculateur={() => setVue({ nom: 'calculateur' })}
       />
     )
-  }
-
-  if (vue.nom === 'calculateur') {
-    return (
+  } else if (vue.nom === 'calculateur') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <CalculateurDisquesScreen onRetour={() => setVue({ nom: 'reglages' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'sauvegardes') {
-    return <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
-  }
-
-  if (vue.nom === 'exercices') {
-    return (
+  } else if (vue.nom === 'sauvegardes') {
+    contenu = <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+  } else if (vue.nom === 'exercices') {
+    contenu = (
       <ExercicesListScreen
         onRetour={() => setVue({ nom: 'accueil' })}
         onOuvrirExercice={(exerciceId) => setVue({ nom: 'exerciceDetail', exerciceId })}
       />
     )
-  }
-
-  if (vue.nom === 'exerciceDetail') {
-    return (
+  } else if (vue.nom === 'exerciceDetail') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <ExerciceDetailScreen exerciceId={vue.exerciceId} onRetour={() => setVue({ nom: 'exercices' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'groupeDetail') {
-    return (
+  } else if (vue.nom === 'groupeDetail') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <GroupeDetailScreen groupe={vue.groupe} onRetour={() => setVue({ nom: 'accueil' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'globale') {
-    return (
+  } else if (vue.nom === 'globale') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <VueGlobaleScreen onRetour={() => setVue({ nom: 'accueil' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'reperes') {
-    return (
+  } else if (vue.nom === 'reperes') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <ReperesScreen onRetour={() => setVue({ nom: 'accueil' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'poids') {
-    return (
+  } else if (vue.nom === 'poids') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <PoidsCorporelScreen onRetour={() => setVue({ nom: 'accueil' })} />
       </Suspense>
     )
-  }
-
-  if (vue.nom === 'historique') {
-    return (
+  } else if (vue.nom === 'historique') {
+    contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <HistoriqueScreen
           onRetour={() => setVue({ nom: 'accueil' })}
@@ -215,17 +194,26 @@ function App() {
         />
       </Suspense>
     )
+  } else {
+    contenu = (
+      <Suspense fallback={<ChargementEcran />}>
+        <HistoriqueDetailScreen
+          seanceId={vue.seanceId}
+          onRetour={() => setVue({ nom: 'historique' })}
+          onSupprimee={() => setVue({ nom: 'historique' })}
+          onReprise={() => setVue({ nom: 'seance', seanceId: vue.seanceId })}
+        />
+      </Suspense>
+    )
   }
 
   return (
-    <Suspense fallback={<ChargementEcran />}>
-      <HistoriqueDetailScreen
-        seanceId={vue.seanceId}
-        onRetour={() => setVue({ nom: 'historique' })}
-        onSupprimee={() => setVue({ nom: 'historique' })}
-        onReprise={() => setVue({ nom: 'seance', seanceId: vue.seanceId })}
-      />
-    </Suspense>
+    <>
+      {vue.nom !== 'seance' && (
+        <BanniereSeanceEnCours onReprendre={(seanceId) => setVue({ nom: 'seance', seanceId })} />
+      )}
+      {contenu}
+    </>
   )
 }
 

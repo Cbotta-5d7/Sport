@@ -30,28 +30,27 @@ export function calculerComparaisonTonnage(
   let vsPrecedente: number | null = null
   let changementNombreSeries: { actuel: number; precedent: number } | null = null
 
-  if (dernieresSeries && dernieresSeries.length > 0) {
+  if (dernieresSeries && dernieresSeries.length > 0 && n > 0) {
     const travailPrecedent = dernieresSeries.filter(estSerieDeTravail)
-    if (complet) {
-      vsPrecedente = variationPourcent(tonnageActuel, tonnageTotal(travailPrecedent))
+    if (travailPrecedent.length > 0) {
+      const tonnageParSeriePrecedent = tonnageTotal(travailPrecedent) / travailPrecedent.length
+      vsPrecedente = variationPourcent(tonnageParSerie, tonnageParSeriePrecedent)
       if (n !== travailPrecedent.length) {
         changementNombreSeries = { actuel: n, precedent: travailPrecedent.length }
       }
-    } else if (n > 0) {
-      const tranche = travailPrecedent.slice(0, n)
-      vsPrecedente = variationPourcent(tonnageActuel, tonnageTotal(tranche))
     }
   }
 
   let vsMoyenne5: number | null = null
   if (historiqueRecent.length > 0 && n > 0) {
-    const valeurs = historiqueRecent.map((session) => {
-      const travail = session.filter(estSerieDeTravail)
-      const tranche = complet ? travail : travail.slice(0, n)
-      return tonnageTotal(tranche)
-    })
-    const moyenne = valeurs.reduce((a, b) => a + b, 0) / valeurs.length
-    vsMoyenne5 = variationPourcent(tonnageActuel, moyenne)
+    const moyennesParSerie = historiqueRecent
+      .map((session) => session.filter(estSerieDeTravail))
+      .filter((travail) => travail.length > 0)
+      .map((travail) => tonnageTotal(travail) / travail.length)
+    if (moyennesParSerie.length > 0) {
+      const moyenne = moyennesParSerie.reduce((a, b) => a + b, 0) / moyennesParSerie.length
+      vsMoyenne5 = variationPourcent(tonnageParSerie, moyenne)
+    }
   }
 
   return {
