@@ -26,10 +26,6 @@ export async function ajusterMinuteur(deltaSec: number): Promise<void> {
   await db.reglages.put({ cle: CLE_FIN, valeur: nouvelleFin })
 }
 
-export async function arreterMinuteur(): Promise<void> {
-  await db.reglages.bulkDelete([CLE_FIN, CLE_DUREE, CLE_SERIE_ID])
-}
-
 export async function lireMinuteur(): Promise<EtatMinuteurStocke | null> {
   const [fin, duree, serieId] = await Promise.all([
     db.reglages.get(CLE_FIN),
