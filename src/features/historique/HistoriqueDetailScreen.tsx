@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import type { Serie, TypeSerie } from '../../db/types'
@@ -24,13 +24,17 @@ interface ClavierCible {
 }
 
 export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onReprise }: Props) {
-  const [seanceExercices, setSeanceExercices] = useState<SeanceExerciceAvecExercice[]>([])
   const [confirmationSuppression, setConfirmationSuppression] = useState(false)
   const [clavier, setClavier] = useState<ClavierCible | null>(null)
   const [erreurReprise, setErreurReprise] = useState<string | null>(null)
   const [repriseEnCours, setRepriseEnCours] = useState(false)
 
   const seance = useLiveQuery(() => db.seances.get(seanceId), [seanceId])
+  const seanceExercices = useLiveQuery(
+    () => seanceExercicesAvecDetails(seanceId),
+    [seanceId],
+    [] as SeanceExerciceAvecExercice[],
+  )
   const seriesToutes = useLiveQuery(
     () =>
       seanceExercices.length
@@ -39,16 +43,6 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
     [seanceExercices.map((se) => se.id).join(',')],
     [] as Serie[],
   )
-
-  useEffect(() => {
-    let annule = false
-    seanceExercicesAvecDetails(seanceId).then((liste) => {
-      if (!annule) setSeanceExercices(liste)
-    })
-    return () => {
-      annule = true
-    }
-  }, [seanceId])
 
   async function supprimerSerie(id: number) {
     await db.series.delete(id)

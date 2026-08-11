@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import type { Serie } from '../../db/types'
 import { derniereSeanceExercicePourExercice, historiqueExercice } from '../../db/queries'
 import { formatKg } from '../../utils/nombres'
@@ -19,63 +20,57 @@ function Fleche({ actuel, precedent }: { actuel?: number; precedent: number }) {
   return <span className="text-slate-400">─</span>
 }
 
-export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuelles }: Props) {
-  const [mode, setMode] = useState<Mode>('cache')
-  const [dernieresSeries, setDernieresSeries] = useState<Serie[] | null>(null)
-  const [dateDerniere, setDateDerniere] = useState<string | null>(null)
-  const [estReference, setEstReference] = useState(false)
-  const [historique, setHistorique] = useState<{ seance: { date: string }; series: Serie[] }[] | null>(null)
-  const [aHistorique, setAHistorique] = useState<boolean | null>(null)
-  const [idPourHistorique, setIdPourHistorique] = useState<number | null>(null)
+interface InfoDerniereFois {
+  aHistorique: boolean
+  estReference: boolean
+  dernieresSeries: Serie[] | null
+  dateDerniere: string | null
+  idPourHistorique: number | null
+}
 
-  useEffect(() => {
-    let annule = false
-    async function charger() {
-      const propre = await derniereSeanceExercicePourExercice(exerciceId)
-      if (annule) return
-      if (propre) {
-        setAHistorique(true)
-        setEstReference(false)
-        setDernieresSeries(propre.series)
-        setDateDerniere(propre.seance.date)
-        setIdPourHistorique(exerciceId)
-        return
-      }
-      if (exerciceRemplaceId) {
-        const reference = await derniereSeanceExercicePourExercice(exerciceRemplaceId)
-        if (annule) return
-        if (reference) {
-          setAHistorique(true)
-          setEstReference(true)
-          setDernieresSeries(reference.series)
-          setDateDerniere(reference.seance.date)
-          setIdPourHistorique(exerciceRemplaceId)
-          return
-        }
-      }
-      setAHistorique(false)
-    }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [exerciceId, exerciceRemplaceId])
-
-  async function basculer() {
-    if (mode === 'cache') {
-      setMode('resume')
-    } else if (mode === 'resume') {
-      if (idPourHistorique !== null) {
-        const h = await historiqueExercice(idPourHistorique)
-        setHistorique(h)
-      }
-      setMode('historique')
-    } else {
-      setMode('cache')
+async function chargerInfo(exerciceId: number, exerciceRemplaceId?: number | null): Promise<InfoDerniereFois> {
+  const propre = await derniereSeanceExercicePourExercice(exerciceId)
+  if (propre) {
+    return {
+      aHistorique: true,
+      estReference: false,
+      dernieresSeries: propre.series,
+      dateDerniere: propre.seance.date,
+      idPourHistorique: exerciceId,
     }
   }
+  if (exerciceRemplaceId) {
+    const reference = await derniereSeanceExercicePourExercice(exerciceRemplaceId)
+    if (reference) {
+      return {
+        aHistorique: true,
+        estReference: true,
+        dernieresSeries: reference.series,
+        dateDerniere: reference.seance.date,
+        idPourHistorique: exerciceRemplaceId,
+      }
+    }
+  }
+  return { aHistorique: false, estReference: false, dernieresSeries: null, dateDerniere: null, idPourHistorique: null }
+}
 
-  if (aHistorique === null) return null
+export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuelles }: Props) {
+  const [mode, setMode] = useState<Mode>('cache')
+
+  const info = useLiveQuery(() => chargerInfo(exerciceId, exerciceRemplaceId), [exerciceId, exerciceRemplaceId], null)
+  const idPourHistorique = info?.idPourHistorique ?? null
+  const historique = useLiveQuery(
+    () => (idPourHistorique !== null ? historiqueExercice(idPourHistorique) : Promise.resolve(null)),
+    [idPourHistorique],
+    null,
+  )
+
+  function basculer() {
+    setMode((m) => (m === 'cache' ? 'resume' : m === 'resume' ? 'historique' : 'cache'))
+  }
+
+  if (info === null) return null
+  const { aHistorique, estReference, dernieresSeries, dateDerniere } = info
 
   if (!aHistorique) {
     return <p className="text-sm text-slate-400">Première fois sur cet exercice.</p>

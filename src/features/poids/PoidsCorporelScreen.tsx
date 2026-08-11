@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { db } from '../../db/schema'
@@ -17,22 +17,11 @@ interface Props {
 
 export function PoidsCorporelScreen({ onRetour }: Props) {
   const [clavierOuvert, setClavierOuvert] = useState(false)
-  const [courbe, setCourbe] = useState<PointPoidsCorporel[]>([])
-  const [vitesse, setVitesse] = useState<number | null>(null)
 
   const mesures = useLiveQuery(() => db.poidsCorporel.orderBy('date').reverse().limit(15).toArray(), [], [])
-
-  useEffect(() => {
-    let annule = false
-    Promise.all([poidsCorporelAvecMoyenne(), vitessePriseDeMasse(new Date())]).then(([c, v]) => {
-      if (annule) return
-      setCourbe(c.slice(-90))
-      setVitesse(v)
-    })
-    return () => {
-      annule = true
-    }
-  }, [mesures])
+  const courbeBrute = useLiveQuery(() => poidsCorporelAvecMoyenne(), [], [] as PointPoidsCorporel[])
+  const courbe = courbeBrute.slice(-90)
+  const vitesse = useLiveQuery(() => vitessePriseDeMasse(new Date()), [], null)
 
   async function ajouter(poidsKg: number) {
     await db.poidsCorporel.add({ date: nowIso(), poidsKg })

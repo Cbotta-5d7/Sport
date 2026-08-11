@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { db } from '../../db/schema'
 import type { Exercice } from '../../db/types'
@@ -20,29 +20,20 @@ interface Props {
 }
 
 export function ReperesScreen({ onRetour }: Props) {
-  const [reperes, setReperes] = useState<RepereAvecDonnees[] | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    async function charger() {
-      const exercices = (await db.exercices.toArray()).filter((e) => e.estRepere && !e.archive)
-      const resultats: RepereAvecDonnees[] = []
-      for (const exo of exercices) {
-        const courbe = await chargeEt1RMParSemaine(exo.id)
-        const derniere = await derniereSeanceExercicePourExercice(exo.id)
-        resultats.push({
-          exercice: exo,
-          courbe,
-          joursDepuisDerniere: derniere ? joursDepuis(derniere.seance.date) : null,
-        })
-      }
-      if (!annule) setReperes(resultats)
+  const reperes = useLiveQuery(async () => {
+    const exercices = (await db.exercices.toArray()).filter((e) => e.estRepere && !e.archive)
+    const resultats: RepereAvecDonnees[] = []
+    for (const exo of exercices) {
+      const courbe = await chargeEt1RMParSemaine(exo.id)
+      const derniere = await derniereSeanceExercicePourExercice(exo.id)
+      resultats.push({
+        exercice: exo,
+        courbe,
+        joursDepuisDerniere: derniere ? joursDepuis(derniere.seance.date) : null,
+      })
     }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [])
+    return resultats
+  }, [], null)
 
   return (
     <div

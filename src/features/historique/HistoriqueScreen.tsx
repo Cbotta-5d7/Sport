@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { listerHistoriqueSeances, type SeanceHistorique } from '../../db/historique'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { listerHistoriqueSeances } from '../../db/historique'
 import { formatDateLongueFR } from '../../utils/dates'
 import { formatDuree } from '../../hooks/useChronometre'
 import { formatKg } from '../../utils/nombres'
@@ -10,17 +10,7 @@ interface Props {
 }
 
 export function HistoriqueScreen({ onRetour, onOuvrirSeance }: Props) {
-  const [seances, setSeances] = useState<SeanceHistorique[] | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    listerHistoriqueSeances().then((liste) => {
-      if (!annule) setSeances(liste)
-    })
-    return () => {
-      annule = true
-    }
-  }, [])
+  const seances = useLiveQuery(() => listerHistoriqueSeances(), [], undefined)
 
   return (
     <div

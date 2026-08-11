@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { calculerKPI, type KPI } from '../../db/dashboard'
 import { formatKg, formatPourcent } from '../../utils/nombres'
 
@@ -54,22 +54,13 @@ function construireTuiles(actuel: KPI, precedent: KPI): Tuile[] {
 }
 
 export function KpiBandeau() {
-  const [tuiles, setTuiles] = useState<Tuile[] | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    async function charger() {
-      const maintenant = new Date()
-      const ilYaUneSemaine = new Date(maintenant)
-      ilYaUneSemaine.setDate(ilYaUneSemaine.getDate() - 7)
-      const [actuel, precedent] = await Promise.all([calculerKPI(maintenant), calculerKPI(ilYaUneSemaine)])
-      if (!annule) setTuiles(construireTuiles(actuel, precedent))
-    }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [])
+  const tuiles = useLiveQuery(async () => {
+    const maintenant = new Date()
+    const ilYaUneSemaine = new Date(maintenant)
+    ilYaUneSemaine.setDate(ilYaUneSemaine.getDate() - 7)
+    const [actuel, precedent] = await Promise.all([calculerKPI(maintenant), calculerKPI(ilYaUneSemaine)])
+    return construireTuiles(actuel, precedent)
+  }, [], null)
 
   if (!tuiles) return null
 

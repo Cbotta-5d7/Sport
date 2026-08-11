@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react'
-import { recapitulatifQuatreSemaines, type RecapSemaine } from '../../db/dashboard'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { recapitulatifQuatreSemaines } from '../../db/dashboard'
 import { formatPlageSemaineFR } from '../../utils/dates'
 
 export function RecapClotureSemaine() {
-  const [semaines, setSemaines] = useState<RecapSemaine[] | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    recapitulatifQuatreSemaines().then((r) => {
-      if (!annule) setSemaines(r)
-    })
-    return () => {
-      annule = true
-    }
-  }, [])
+  const semaines = useLiveQuery(() => recapitulatifQuatreSemaines(), [], null)
 
   if (!semaines) return null
   const max = Math.max(1, ...semaines.map((s) => s.totalEfficaces))

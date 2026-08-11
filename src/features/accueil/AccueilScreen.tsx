@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { etatsGroupes } from '../../db/queries'
-import { tableauBordSemaine, phraseSynthese, alerteImpossible, type TableauBordSemaine } from '../../db/dashboard'
+import { tableauBordSemaine, phraseSynthese, alerteImpossible } from '../../db/dashboard'
 import { formatDelaiRelatif, formatPlageSemaineFR, nomJourSemaineFR, jourSemaineIndex } from '../../utils/dates'
 import { IndicateurSync } from '../reglages/IndicateurSync'
 import { KpiBandeau } from './KpiBandeau'
@@ -39,19 +39,9 @@ export function AccueilScreen({
 }: Props) {
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
-  const [tableau, setTableau] = useState<TableauBordSemaine | null>(null)
 
   const etats = useLiveQuery(() => etatsGroupes(), [], undefined)
-
-  useEffect(() => {
-    let annule = false
-    tableauBordSemaine().then((t) => {
-      if (!annule) setTableau(t)
-    })
-    return () => {
-      annule = true
-    }
-  }, [etats])
+  const tableau = useLiveQuery(() => tableauBordSemaine(), [], null)
 
   const etatsTries = useMemo(() => {
     if (!etats) return []

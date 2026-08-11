@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import type { Exercice, GroupeMusculaire, Seance, Serie } from '../../db/types'
 import { seanceExercicesAvecDetails } from '../../db/queries'
@@ -83,17 +83,7 @@ async function construireRecap(seanceId: number): Promise<Recap | null> {
 }
 
 export function FinSeanceScreen({ seanceId, onFermer }: Props) {
-  const [recap, setRecap] = useState<Recap | null>(null)
-
-  useEffect(() => {
-    let annule = false
-    construireRecap(seanceId).then((r) => {
-      if (!annule) setRecap(r)
-    })
-    return () => {
-      annule = true
-    }
-  }, [seanceId])
+  const recap = useLiveQuery(() => construireRecap(seanceId), [seanceId], null)
 
   if (!recap) {
     return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>

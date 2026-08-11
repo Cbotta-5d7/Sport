@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ResponsiveContainer,
   RadarChart,
@@ -67,26 +67,11 @@ function CarteChaleur({ jours }: { jours: JourChaleur[] }) {
 }
 
 export function VueGlobaleScreen({ onRetour }: Props) {
-  const [radar, setRadar] = useState<PointRadarGroupe[]>([])
-  const [chaleur, setChaleur] = useState<JourChaleur[]>([])
-  const [poids, setPoids] = useState<PointPoidsCorporel[]>([])
-  const [volume, setVolume] = useState<PointVolumeSemaine[]>([])
-
-  useEffect(() => {
-    let annule = false
-    Promise.all([radarGroupes(), carteChaleurSeances(), poidsCorporelAvecMoyenne(), volumeTotalParSemaine()]).then(
-      ([r, c, p, v]) => {
-        if (annule) return
-        setRadar(r)
-        setChaleur(c)
-        setPoids(p.slice(-60))
-        setVolume(v)
-      },
-    )
-    return () => {
-      annule = true
-    }
-  }, [])
+  const radar = useLiveQuery(() => radarGroupes(), [], [] as PointRadarGroupe[])
+  const chaleur = useLiveQuery(() => carteChaleurSeances(), [], [] as JourChaleur[])
+  const poidsBrut = useLiveQuery(() => poidsCorporelAvecMoyenne(), [], [] as PointPoidsCorporel[])
+  const poids = poidsBrut.slice(-60)
+  const volume = useLiveQuery(() => volumeTotalParSemaine(), [], [] as PointVolumeSemaine[])
 
   return (
     <div

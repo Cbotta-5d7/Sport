@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import type { Exercice } from '../../db/types'
 
@@ -11,14 +12,14 @@ interface Props {
 
 export function ModaleChoixExercice({ titre, exclureId, onChoisir, onFermer }: Props) {
   const [recherche, setRecherche] = useState('')
-  const [exercices, setExercices] = useState<Exercice[]>([])
-
-  useEffect(() => {
-    db.exercices
-      .filter((e) => !e.archive)
-      .toArray()
-      .then((liste) => setExercices(liste.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))))
-  }, [])
+  const exercices = useLiveQuery(
+    async () => {
+      const liste = await db.exercices.filter((e) => !e.archive).toArray()
+      return liste.sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+    },
+    [],
+    [] as Exercice[],
+  )
 
   const filtres = exercices.filter(
     (e) => e.id !== exclureId && e.nom.toLowerCase().includes(recherche.toLowerCase()),

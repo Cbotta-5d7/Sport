@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import type { Exercice, GroupeMusculaire } from '../../db/types'
 import {
   exercicesActifsParGroupes,
@@ -28,15 +29,13 @@ function distribuerSeries(restant: number, nbExercices: number): number {
 }
 
 export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
-  const [exercices, setExercices] = useState<Exercice[]>([])
   const [selections, setSelections] = useState<Record<number, SelectionExercice>>({})
-  const [restantParGroupe, setRestantParGroupe] = useState<Record<string, number>>({})
   const [groupePourCreation, setGroupePourCreation] = useState<GroupeMusculaire | null>(null)
   const [demarrageEnCours, setDemarrageEnCours] = useState(false)
+  const cleInitialisee = useRef<string | null>(null)
 
-  useEffect(() => {
-    let annule = false
-    async function charger() {
+  const donnees = useLiveQuery(
+    async () => {
       const [liste, dejaCochesSet, restants] = await Promise.all([
         exercicesActifsParGroupes(groupes),
         idsExercicesDerniereSeance(groupes),
@@ -48,37 +47,41 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
           }),
         ),
       ])
-      if (annule) return
+      return { liste, dejaCochesSet, restantMap: Object.fromEntries(restants) as Record<string, number> }
+    },
+    [groupes],
+    null,
+  )
 
-      const restantMap = Object.fromEntries(restants)
-      const nbCochesParGroupe: Record<string, number> = {}
-      for (const e of liste) {
-        if (dejaCochesSet.has(e.id!)) {
-          nbCochesParGroupe[e.groupeMusculaire] = (nbCochesParGroupe[e.groupeMusculaire] ?? 0) + 1
-        }
+  const exercices = donnees?.liste ?? []
+  const restantParGroupe = donnees?.restantMap ?? {}
+
+  useEffect(() => {
+    if (!donnees) return
+    const cle = groupes.join(',')
+    if (cleInitialisee.current === cle) return
+    cleInitialisee.current = cle
+
+    const nbCochesParGroupe: Record<string, number> = {}
+    for (const e of donnees.liste) {
+      if (donnees.dejaCochesSet.has(e.id!)) {
+        nbCochesParGroupe[e.groupeMusculaire] = (nbCochesParGroupe[e.groupeMusculaire] ?? 0) + 1
       }
+    }
 
-      const initSelections: Record<number, SelectionExercice> = {}
-      for (const e of liste) {
-        const coche = dejaCochesSet.has(e.id!)
-        initSelections[e.id!] = {
-          coche,
-          seriesPrevues: distribuerSeries(
-            restantMap[e.groupeMusculaire] ?? 0,
-            nbCochesParGroupe[e.groupeMusculaire] ?? 1,
-          ),
-        }
+    const initSelections: Record<number, SelectionExercice> = {}
+    for (const e of donnees.liste) {
+      const coche = donnees.dejaCochesSet.has(e.id!)
+      initSelections[e.id!] = {
+        coche,
+        seriesPrevues: distribuerSeries(
+          donnees.restantMap[e.groupeMusculaire] ?? 0,
+          nbCochesParGroupe[e.groupeMusculaire] ?? 1,
+        ),
       }
-
-      setExercices(liste)
-      setRestantParGroupe(restantMap)
-      setSelections(initSelections)
     }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [groupes])
+    setSelections(initSelections)
+  }, [donnees, groupes])
 
   function basculerExercice(id: number) {
     setSelections((s) => ({ ...s, [id]: { ...s[id], coche: !s[id]?.coche } }))
@@ -92,7 +95,6 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
   }
 
   function ajouterExerciceCree(exercice: Exercice) {
-    setExercices((liste) => [...liste, exercice])
     setSelections((s) => ({ ...s, [exercice.id!]: { coche: true, seriesPrevues: 3 } }))
     setGroupePourCreation(null)
   }

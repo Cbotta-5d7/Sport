@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -36,47 +36,22 @@ interface Props {
 }
 
 export function GroupeDetailScreen({ groupe, onRetour }: Props) {
-  const [series, setSeries] = useState<PointSeriesSemaineGroupe[]>([])
-  const [indice, setIndice] = useState<PointIndiceCharge[]>([])
-  const [frequence, setFrequence] = useState<PointFrequence[]>([])
-  const [ecart, setEcart] = useState<PointEcartCumule[]>([])
-  const [courbesExercices, setCourbesExercices] = useState<{ exercice: Exercice; points: PointChargeRM[] }[]>([])
+  const series = useLiveQuery(() => seriesEfficacesParSemaineGroupe(groupe), [groupe], [] as PointSeriesSemaineGroupe[])
+  const indice = useLiveQuery(() => indiceChargeGroupe(groupe), [groupe], [] as PointIndiceCharge[])
+  const frequence = useLiveQuery(() => frequenceHebdoGroupe(groupe), [groupe], [] as PointFrequence[])
+  const ecart = useLiveQuery(() => ecartCumuleGroupe(groupe), [groupe], [] as PointEcartCumule[])
 
-  useEffect(() => {
-    let annule = false
-    Promise.all([
-      seriesEfficacesParSemaineGroupe(groupe),
-      indiceChargeGroupe(groupe),
-      frequenceHebdoGroupe(groupe),
-      ecartCumuleGroupe(groupe),
-    ]).then(([s, i, f, e]) => {
-      if (annule) return
-      setSeries(s)
-      setIndice(i)
-      setFrequence(f)
-      setEcart(e)
-    })
-    return () => {
-      annule = true
-    }
-  }, [groupe])
-
-  useEffect(() => {
-    let annule = false
-    async function charger() {
+  const courbesExercices = useLiveQuery(
+    async () => {
       const exercices = await exercicesActifsParGroupes([groupe])
       const points = await Promise.all(exercices.map((ex) => chargeEt1RMParSemaine(ex.id)))
-      if (annule) return
-      const avecDonnees = exercices
+      return exercices
         .map((exercice, i) => ({ exercice, points: points[i] }))
         .filter((c) => c.points.some((p) => p.rm1 !== null))
-      setCourbesExercices(avecDonnees)
-    }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [groupe])
+    },
+    [groupe],
+    [] as { exercice: Exercice; points: PointChargeRM[] }[],
+  )
 
   return (
     <div

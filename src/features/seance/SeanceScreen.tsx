@@ -66,18 +66,11 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     null,
   )
 
-  const [historiqueExo, setHistoriqueExo] = useState<{ seance: { date: string }; series: Serie[] }[]>([])
-  useEffect(() => {
-    if (!seActuel) return
-    let annule = false
-    historiqueExercice(seActuel.exerciceId, 5).then((h) => {
-      if (!annule) setHistoriqueExo(h)
-    })
-    return () => {
-      annule = true
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seActuel?.exerciceId])
+  const historiqueExo = useLiveQuery(
+    () => (seActuel ? historiqueExercice(seActuel.exerciceId, 5) : Promise.resolve([])),
+    [seActuel?.exerciceId],
+    [] as { seance: { date: string }; series: Serie[] }[],
+  )
 
   const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0, rir: null })
   const [entreeReduite, setEntreeReduite] = useState(false)

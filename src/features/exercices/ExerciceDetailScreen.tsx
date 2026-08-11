@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
 import {
   ResponsiveContainer,
   LineChart,
@@ -14,7 +15,6 @@ import {
   Tooltip,
 } from 'recharts'
 import { db } from '../../db/schema'
-import type { Exercice } from '../../db/types'
 import {
   chargeEt1RMParSemaine,
   tonnageParSeance,
@@ -36,40 +36,16 @@ interface Props {
 }
 
 export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
-  const [exercice, setExercice] = useState<Exercice | null>(null)
-  const [chargeRM, setChargeRM] = useState<PointChargeRM[]>([])
-  const [tonnage, setTonnage] = useState<PointTonnageSeance[]>([])
-  const [nuage, setNuage] = useState<PointNuage[]>([])
-  const [repartition, setRepartition] = useState<RepartitionReps[]>([])
+  const exercice = useLiveQuery(async () => (await db.exercices.get(exerciceId)) ?? null, [exerciceId], null)
+  const chargeRM = useLiveQuery(() => chargeEt1RMParSemaine(exerciceId), [exerciceId], [] as PointChargeRM[])
+  const tonnage = useLiveQuery(() => tonnageParSeance(exerciceId), [exerciceId], [] as PointTonnageSeance[])
+  const nuage = useLiveQuery(() => nuagePoidsReps(exerciceId), [exerciceId], [] as PointNuage[])
+  const repartition = useLiveQuery(() => repartitionParFourchette(exerciceId), [exerciceId], [] as RepartitionReps[])
   const [editionOuverte, setEditionOuverte] = useState(false)
-
-  useEffect(() => {
-    let annule = false
-    async function charger() {
-      const [exo, cr, tn, nu, rep] = await Promise.all([
-        db.exercices.get(exerciceId),
-        chargeEt1RMParSemaine(exerciceId),
-        tonnageParSeance(exerciceId),
-        nuagePoidsReps(exerciceId),
-        repartitionParFourchette(exerciceId),
-      ])
-      if (annule) return
-      setExercice(exo ?? null)
-      setChargeRM(cr)
-      setTonnage(tn)
-      setNuage(nu)
-      setRepartition(rep)
-    }
-    charger()
-    return () => {
-      annule = true
-    }
-  }, [exerciceId])
 
   async function basculerRepere() {
     if (!exercice) return
     await db.exercices.update(exercice.id, { estRepere: !exercice.estRepere })
-    setExercice({ ...exercice, estRepere: !exercice.estRepere })
   }
 
   async function archiver() {
@@ -182,8 +158,7 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
       {editionOuverte && (
         <ModaleEditionExercice
           exercice={exercice}
-          onEnregistre={(maj) => {
-            setExercice(maj)
+          onEnregistre={() => {
             setEditionOuverte(false)
           }}
           onFermer={() => setEditionOuverte(false)}
