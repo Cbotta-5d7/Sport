@@ -10,7 +10,6 @@ interface Props {
   reps: number
   incrementKg: number
   rir: number | null
-  estDerniereSerie: boolean
   onChangerPoids: (poids: number) => void
   onChangerReps: (reps: number) => void
   onChoisirRir: (rir: number) => void
@@ -23,7 +22,6 @@ export function EntreeSerie({
   reps,
   incrementKg,
   rir,
-  estDerniereSerie,
   onChangerPoids,
   onChangerReps,
   onChoisirRir,
@@ -36,7 +34,7 @@ export function EntreeSerie({
   const appuiMoinsReps = useAppuiRepete(() => onChangerReps(Math.max(0, reps - 1)))
   const appuiPlusReps = useAppuiRepete(() => onChangerReps(reps + 1))
 
-  const rirManquant = estDerniereSerie && rir === null
+  const rirManquant = rir === null
 
   return (
     <div
@@ -93,12 +91,10 @@ export function EntreeSerie({
         </button>
       </div>
 
-      {estDerniereSerie && (
-        <div>
-          <p className="mb-1 text-xs text-slate-400">RIR (répétitions en réserve)</p>
-          <SelecteurRIR valeur={rir} onChoisir={onChoisirRir} />
-        </div>
-      )}
+      <div>
+        <p className="mb-1 text-xs text-slate-400">RIR (répétitions en réserve)</p>
+        <SelecteurRIR valeur={rir} onChoisir={onChoisirRir} />
+      </div>
 
       <button
         type="button"

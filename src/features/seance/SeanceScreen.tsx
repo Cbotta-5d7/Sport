@@ -171,7 +171,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
 
   async function validerSerie() {
     if (!seActuel) return
-    if (estDerniereSerie && entree.rir === null) return
+    if (entree.rir === null) return
 
     setCoach(null)
     const maintenant = nowIso()
@@ -193,7 +193,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
       poidsKg: entree.poidsKg,
       reps: entree.reps,
       type: 'normale',
-      rir: estDerniereSerie ? entree.rir : null,
+      rir: entree.rir,
       reposReelSec: null,
       validee: true,
       estRecord,
@@ -209,12 +209,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
       setDernierRecord(`Record : ${libelles.join(', ')} sur ${seActuel.exercice.nom} !`)
     }
 
-    if (estDerniereSerie && entree.rir !== null) {
-      const rirFinal = entree.rir
-      const autres = await db.series.where('seanceExerciceId').equals(seActuel.id).toArray()
-      await Promise.all(
-        autres.filter((s) => s.id !== nouvelId && s.rir !== rirFinal).map((s) => db.series.update(s.id, { rir: rirFinal })),
-      )
+    if (estDerniereSerie) {
       await db.seanceExercices.update(seActuel.id, { statut: 'fait' })
     } else if (seActuel.statut === 'a_faire') {
       await db.seanceExercices.update(seActuel.id, { statut: 'en_cours' })
@@ -598,7 +593,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee }: Props) {
             reps={entree.reps}
             incrementKg={seActuel.exercice.incrementKg}
             rir={entree.rir}
-            estDerniereSerie={estDerniereSerie}
             onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
             onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
             onChoisirRir={(rir) => setEntree((e) => ({ ...e, rir }))}
