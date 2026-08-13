@@ -168,7 +168,7 @@ export function AccueilScreen({
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="text-right text-sm opacity-80">
-                    <p>{stat?.seriesEfficaces ?? 0} séries</p>
+                    <p>{stat?.totalSeries ?? 0} séries</p>
                     <p>
                       cible {stat?.cibleSeries ?? '—'}
                       {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
