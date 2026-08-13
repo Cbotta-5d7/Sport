@@ -170,7 +170,7 @@ export function AccueilScreen({
                   <div className="text-right text-sm opacity-80">
                     <p>{stat?.totalSeries ?? 0} séries</p>
                     <p>
-                      cible {stat?.cibleSeries ?? '—'}
+                      {stat?.seriesEfficaces ?? 0} efficaces · cible {stat?.cibleSeries ?? '—'}
                       {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
                     </p>
                   </div>
