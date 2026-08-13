@@ -140,12 +140,12 @@ export function AccueilScreen({
       <div className="flex flex-col gap-3">
         {etatsTries.map((etat) => {
           const stat = statsParGroupe.get(etat.groupe)
-          const quotaAtteint = stat ? stat.seriesEfficaces >= stat.cibleSeries : false
+          const quotaAtteint = stat ? stat.totalSeries >= stat.cibleSeries : false
           const disponible = etat.heuresDepuisDerniere === null || etat.heuresDepuisDerniere >= HEURES_RECUPERATION
           const couleur = CLASSES_DISPONIBILITE[quotaAtteint ? 'complete' : disponible ? 'disponible' : 'indispo']
           const selectionne = selection.includes(etat.groupe)
-          const reste = stat ? Math.max(0, stat.cibleSeries - stat.seriesEfficaces) : null
-          const progression = stat && stat.cibleSeries > 0 ? Math.min(100, (stat.seriesEfficaces / stat.cibleSeries) * 100) : 0
+          const reste = stat ? Math.max(0, stat.cibleSeries - stat.totalSeries) : null
+          const progression = stat && stat.cibleSeries > 0 ? Math.min(100, (stat.totalSeries / stat.cibleSeries) * 100) : 0
           return (
             <div
               key={etat.groupe}
@@ -170,7 +170,7 @@ export function AccueilScreen({
                   <div className="text-right text-sm opacity-80">
                     <p>{stat?.totalSeries ?? 0} séries</p>
                     <p>
-                      {stat?.seriesEfficaces ?? 0} efficaces · cible {stat?.cibleSeries ?? '—'}
+                      cible {stat?.cibleSeries ?? '—'}
                       {reste !== null && reste > 0 ? ` · reste ${reste}` : ''}
                     </p>
                   </div>

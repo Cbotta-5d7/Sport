@@ -19,9 +19,9 @@ function fleche(actuel: number | null, precedent: number | null): '▲' | '▼' 
 function construireTuiles(actuel: KPI, precedent: KPI): Tuile[] {
   return [
     {
-      titre: 'Séries efficaces',
-      valeur: String(actuel.seriesEfficaces),
-      fleche: fleche(actuel.seriesEfficaces, precedent.seriesEfficaces),
+      titre: 'Séries',
+      valeur: String(actuel.seriesRealisees),
+      fleche: fleche(actuel.seriesRealisees, precedent.seriesRealisees),
     },
     {
       titre: "Taux d'atteinte",

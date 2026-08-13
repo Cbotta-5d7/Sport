@@ -15,7 +15,7 @@ import {
 import type { Exercice, GroupeMusculaire } from '../../db/types'
 import { exercicesActifsParGroupes } from '../../db/queries'
 import {
-  seriesEfficacesParSemaineGroupe,
+  seriesParSemaineGroupe,
   indiceChargeGroupe,
   frequenceHebdoGroupe,
   ecartCumuleGroupe,
@@ -36,7 +36,7 @@ interface Props {
 }
 
 export function GroupeDetailScreen({ groupe, onRetour }: Props) {
-  const series = useLiveQuery(() => seriesEfficacesParSemaineGroupe(groupe), [groupe], [] as PointSeriesSemaineGroupe[])
+  const series = useLiveQuery(() => seriesParSemaineGroupe(groupe), [groupe], [] as PointSeriesSemaineGroupe[])
   const indice = useLiveQuery(() => indiceChargeGroupe(groupe), [groupe], [] as PointIndiceCharge[])
   const frequence = useLiveQuery(() => frequenceHebdoGroupe(groupe), [groupe], [] as PointFrequence[])
   const ecart = useLiveQuery(() => ecartCumuleGroupe(groupe), [groupe], [] as PointEcartCumule[])
@@ -69,7 +69,7 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
         <h1 className="text-xl font-semibold">{groupe}</h1>
       </header>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-500">Séries efficaces par semaine</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Séries par semaine</h2>
       <div className="mb-6 h-44 rounded-2xl border border-slate-200 bg-white p-2">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={series}>
@@ -78,7 +78,7 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
             <YAxis tick={AXE_STYLE} width={30} />
             <Tooltip contentStyle={TOOLTIP_STYLE} />
             <Area type="stepAfter" dataKey="cible" name="Cible" fill="#f1f5f9" stroke="none" />
-            <Bar dataKey="efficaces" name="Séries efficaces" fill="#f97316" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="realise" name="Séries" fill="#f97316" radius={[4, 4, 0, 0]} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

@@ -2,7 +2,6 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
 import type { Exercice, GroupeMusculaire, Seance, Serie } from '../../db/types'
 import { seanceExercicesAvecDetails } from '../../db/queries'
-import { serieEstEfficace } from '../../db/rir'
 import { tonnageTotal, estSerieDeTravail, variationPourcent } from '../../utils/calculs'
 import { formatKg, formatPourcent } from '../../utils/nombres'
 import { formatDuree } from '../../hooks/useChronometre'
@@ -14,7 +13,7 @@ interface Props {
 
 interface RecapGroupe {
   groupe: GroupeMusculaire
-  seriesEfficaces: number
+  nombreSeries: number
   tonnage: number
 }
 
@@ -56,7 +55,7 @@ async function construireRecap(seanceId: number): Promise<Recap | null> {
     const series = entrees.flatMap((e) => e.series)
     return {
       groupe,
-      seriesEfficaces: series.filter(serieEstEfficace).length,
+      nombreSeries: series.filter((s) => s.validee && estSerieDeTravail(s)).length,
       tonnage: tonnageTotal(series),
     }
   })
@@ -115,13 +114,13 @@ export function FinSeanceScreen({ seanceId, onFermer }: Props) {
         )}
       </div>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-500">Séries efficaces par groupe</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Séries par groupe</h2>
       <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200">
         {recap.parGroupe.map((g) => (
           <div key={g.groupe} className="flex justify-between border-b border-slate-200 px-4 py-2 last:border-0">
             <span className="text-slate-800">{g.groupe}</span>
             <span className="text-slate-500">
-              {g.seriesEfficaces} séries efficaces · {formatKg(g.tonnage)} kg
+              {g.nombreSeries} séries · {formatKg(g.tonnage)} kg
             </span>
           </div>
         ))}

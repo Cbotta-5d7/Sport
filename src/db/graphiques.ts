@@ -3,7 +3,6 @@ import type { GroupeMusculaire, Serie } from './types'
 import { debutSemaine } from '../utils/dates'
 import { estimation1RM, tonnageTotal, estSerieDeTravail } from '../utils/calculs'
 import { historiqueExercice } from './queries'
-import { serieEstEfficace } from './rir'
 import { tableauBordSemaine } from './dashboard'
 
 function libelleSemaine(debut: Date): string {
@@ -116,11 +115,11 @@ async function seriesGroupeParSemaine(groupe: GroupeMusculaire, nbSemaines: numb
 
 export interface PointSeriesSemaineGroupe {
   semaine: string
-  efficaces: number
+  realise: number
   cible: number
 }
 
-export async function seriesEfficacesParSemaineGroupe(
+export async function seriesParSemaineGroupe(
   groupe: GroupeMusculaire,
   nbSemaines = 12,
 ): Promise<PointSeriesSemaineGroupe[]> {
@@ -130,16 +129,16 @@ export async function seriesEfficacesParSemaineGroupe(
   return semaines.map((debut) => {
     const fin = new Date(debut)
     fin.setDate(fin.getDate() + 7)
-    let efficaces = 0
+    let realise = 0
     for (const s of series) {
       const se = seParId.get(s.seanceExerciceId)
       const seance = se ? seanceParId.get(se.seanceId) : undefined
       if (!seance) continue
       const d = new Date(seance.date)
       if (d < debut || d >= fin) continue
-      if (serieEstEfficace(s)) efficaces += 1
+      if (s.validee && estSerieDeTravail(s)) realise += 1
     }
-    return { semaine: libelleSemaine(debut), efficaces, cible: cible?.seriesCibleSemaine ?? 0 }
+    return { semaine: libelleSemaine(debut), realise, cible: cible?.seriesCibleSemaine ?? 0 }
   })
 }
 
@@ -212,10 +211,10 @@ export interface PointEcartCumule {
 }
 
 export async function ecartCumuleGroupe(groupe: GroupeMusculaire, nbSemaines = 12): Promise<PointEcartCumule[]> {
-  const points = await seriesEfficacesParSemaineGroupe(groupe, nbSemaines)
+  const points = await seriesParSemaineGroupe(groupe, nbSemaines)
   let cumul = 0
   return points.map((p) => {
-    cumul += p.efficaces - p.cible
+    cumul += p.realise - p.cible
     return { semaine: p.semaine, ecartCumule: cumul }
   })
 }
@@ -230,7 +229,7 @@ export interface PointRadarGroupe {
 
 export async function radarGroupes(): Promise<PointRadarGroupe[]> {
   const t = await tableauBordSemaine()
-  return t.groupes.map((g) => ({ groupe: g.groupe, realise: g.seriesEfficaces, cible: g.cibleSeries }))
+  return t.groupes.map((g) => ({ groupe: g.groupe, realise: g.totalSeries, cible: g.cibleSeries }))
 }
 
 export interface JourChaleur {

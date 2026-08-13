@@ -6,7 +6,7 @@ export function RecapClotureSemaine() {
   const semaines = useLiveQuery(() => recapitulatifQuatreSemaines(), [], null)
 
   if (!semaines) return null
-  const max = Math.max(1, ...semaines.map((s) => s.totalEfficaces))
+  const max = Math.max(1, ...semaines.map((s) => s.totalRealise))
 
   return (
     <div className="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
@@ -20,11 +20,11 @@ export function RecapClotureSemaine() {
             <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full bg-accent"
-                style={{ width: `${(s.totalEfficaces / max) * 100}%` }}
+                style={{ width: `${(s.totalRealise / max) * 100}%` }}
               />
             </div>
             <span className="w-16 shrink-0 text-right text-xs text-slate-500">
-              {s.totalEfficaces}/{s.totalCible}
+              {s.totalRealise}/{s.totalCible}
             </span>
           </div>
         ))}

@@ -4,7 +4,7 @@ import type { Exercice, GroupeMusculaire } from '../../db/types'
 import {
   exercicesActifsParGroupes,
   idsExercicesDerniereSeance,
-  seriesEfficacesSemaine,
+  seriesSemaineGroupe,
 } from '../../db/queries'
 import { db } from '../../db/schema'
 import { ModaleCreationExercice } from '../exercices/ModaleCreationExercice'
@@ -42,8 +42,8 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         Promise.all(
           groupes.map(async (g) => {
             const cible = await db.ciblesVolume.get(g)
-            const efficaces = await seriesEfficacesSemaine(g)
-            return [g, Math.max(0, (cible?.seriesCibleSemaine ?? 0) - efficaces)] as const
+            const faites = await seriesSemaineGroupe(g)
+            return [g, Math.max(0, (cible?.seriesCibleSemaine ?? 0) - faites)] as const
           }),
         ),
       ])

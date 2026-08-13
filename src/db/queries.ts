@@ -2,7 +2,7 @@ import { db } from './schema'
 import { ordrePriorite } from './types'
 import type { Exercice, GroupeMusculaire, Seance, SeanceExercice, Serie } from './types'
 import { estDansSemaine, joursDepuis, heuresDepuis } from '../utils/dates'
-import { serieEstEfficace } from './rir'
+import { estSerieDeTravail } from '../utils/calculs'
 
 export interface EtatGroupe {
   groupe: GroupeMusculaire
@@ -11,7 +11,7 @@ export interface EtatGroupe {
   heuresDepuisDerniere: number | null
   cibleSeriesSemaine: number
   cibleSeancesSemaine: number
-  seriesEfficacesSemaine: number
+  seriesSemaine: number
 }
 
 async function exercicesIdsParGroupe(groupe: GroupeMusculaire): Promise<number[]> {
@@ -43,7 +43,7 @@ export async function derniereSeanceTerminee(groupe: GroupeMusculaire): Promise<
   return null
 }
 
-export async function seriesEfficacesSemaine(groupe: GroupeMusculaire): Promise<number> {
+export async function seriesSemaineGroupe(groupe: GroupeMusculaire): Promise<number> {
   const idsExercices = await exercicesIdsParGroupe(groupe)
   if (idsExercices.length === 0) return 0
 
@@ -66,7 +66,7 @@ export async function seriesEfficacesSemaine(groupe: GroupeMusculaire): Promise<
 
   let total = 0
   for (const s of series) {
-    if (!serieEstEfficace(s)) continue
+    if (!s.validee || !estSerieDeTravail(s)) continue
     const se = seanceExercices.find((x) => x.id === s.seanceExerciceId)
     if (!se) continue
     const seance = seancesParId.get(se.seanceId)
@@ -84,7 +84,7 @@ export async function etatsGroupes(): Promise<EtatGroupe[]> {
 
   for (const cible of cibles) {
     const derniere = await derniereSeanceTerminee(cible.groupeMusculaire)
-    const efficaces = await seriesEfficacesSemaine(cible.groupeMusculaire)
+    const series = await seriesSemaineGroupe(cible.groupeMusculaire)
     resultats.push({
       groupe: cible.groupeMusculaire,
       derniereDateIso: derniere?.date ?? null,
@@ -92,7 +92,7 @@ export async function etatsGroupes(): Promise<EtatGroupe[]> {
       heuresDepuisDerniere: derniere ? heuresDepuis(derniere.date) : null,
       cibleSeriesSemaine: cible.seriesCibleSemaine,
       cibleSeancesSemaine: cible.seancesCibleSemaine,
-      seriesEfficacesSemaine: efficaces,
+      seriesSemaine: series,
     })
   }
   return resultats

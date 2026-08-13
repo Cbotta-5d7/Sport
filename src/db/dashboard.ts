@@ -2,14 +2,12 @@ import { db } from './schema'
 import { ordrePriorite } from './types'
 import type { GroupeMusculaire } from './types'
 import { estDansSemaine, debutSemaine } from '../utils/dates'
-import { serieEstEfficace } from './rir'
 import { estimation1RM, tonnageTotal, estSerieDeTravail } from '../utils/calculs'
 
 export interface StatGroupeSemaine {
   groupe: GroupeMusculaire
   cibleSeries: number
   totalSeries: number
-  seriesEfficaces: number
 }
 
 export interface TableauBordSemaine {
@@ -17,7 +15,7 @@ export interface TableauBordSemaine {
   seancesFaites: number
   seancesCible: number
   seancesRestantes: number
-  totalEfficaces: number
+  totalRealise: number
   totalCible: number
   totalReste: number
 }
@@ -49,8 +47,8 @@ export async function tableauBordSemaine(reference = new Date()): Promise<Tablea
   const exerciceParId = new Map(tousExercices.map((e) => [e.id, e]))
   const seParId = new Map(seanceExercicesSemaine.map((se) => [se.id, se]))
 
-  const parGroupe = new Map<GroupeMusculaire, { total: number; efficaces: number }>()
-  for (const c of cibles) parGroupe.set(c.groupeMusculaire, { total: 0, efficaces: 0 })
+  const parGroupe = new Map<GroupeMusculaire, { total: number }>()
+  for (const c of cibles) parGroupe.set(c.groupeMusculaire, { total: 0 })
 
   for (const s of seriesSemaine) {
     if (!s.validee || s.type === 'échauffement') continue
@@ -61,7 +59,6 @@ export async function tableauBordSemaine(reference = new Date()): Promise<Tablea
     const stats = parGroupe.get(exo.groupeMusculaire)
     if (!stats) continue
     stats.total += 1
-    if (serieEstEfficace(s)) stats.efficaces += 1
   }
 
   const seancesCibleReglage = await db.reglages.get('seancesCibleParSemaine')
@@ -70,24 +67,23 @@ export async function tableauBordSemaine(reference = new Date()): Promise<Tablea
   const seancesRestantes = Math.max(0, seancesCible - seancesFaites)
 
   const groupes: StatGroupeSemaine[] = cibles.map((c) => {
-    const stats = parGroupe.get(c.groupeMusculaire) ?? { total: 0, efficaces: 0 }
+    const stats = parGroupe.get(c.groupeMusculaire) ?? { total: 0 }
     return {
       groupe: c.groupeMusculaire,
       cibleSeries: c.seriesCibleSemaine,
       totalSeries: stats.total,
-      seriesEfficaces: stats.efficaces,
     }
   })
 
-  const totalEfficaces = groupes.reduce((a, g) => a + g.seriesEfficaces, 0)
+  const totalRealise = groupes.reduce((a, g) => a + g.totalSeries, 0)
   const totalCible = groupes.reduce((a, g) => a + g.cibleSeries, 0)
-  const totalReste = groupes.reduce((a, g) => a + Math.max(0, g.cibleSeries - g.seriesEfficaces), 0)
+  const totalReste = groupes.reduce((a, g) => a + Math.max(0, g.cibleSeries - g.totalSeries), 0)
 
-  return { groupes, seancesFaites, seancesCible, seancesRestantes, totalEfficaces, totalCible, totalReste }
+  return { groupes, seancesFaites, seancesCible, seancesRestantes, totalRealise, totalCible, totalReste }
 }
 
 export interface KPI {
-  seriesEfficaces: number
+  seriesRealisees: number
   tauxAtteinte: number
   indiceProgression: number | null
   regulariteFaites: number
@@ -195,8 +191,8 @@ export async function calculerKPI(reference = new Date()): Promise<KPI> {
   const regularite = await regulariteSurQuatreSemaines(reference)
 
   return {
-    seriesEfficaces: semaine.totalEfficaces,
-    tauxAtteinte: semaine.totalCible > 0 ? (semaine.totalEfficaces / semaine.totalCible) * 100 : 0,
+    seriesRealisees: semaine.totalRealise,
+    tauxAtteinte: semaine.totalCible > 0 ? (semaine.totalRealise / semaine.totalCible) * 100 : 0,
     indiceProgression: await indiceProgressionRepere(reference),
     regulariteFaites: regularite.faites,
     regulariteCible: regularite.cible,
@@ -207,18 +203,18 @@ export async function calculerKPI(reference = new Date()): Promise<KPI> {
 
 export function phraseSynthese(t: TableauBordSemaine): string {
   if (t.totalReste === 0) {
-    return `Cette semaine tu as fait ${t.totalEfficaces} séries efficaces sur ${t.totalCible}. Cible atteinte.`
+    return `Cette semaine tu as fait ${t.totalRealise} séries sur ${t.totalCible}. Cible atteinte.`
   }
   const pluriel = t.seancesRestantes > 1 ? 's' : ''
-  return `Cette semaine tu as fait ${t.totalEfficaces} séries efficaces sur ${t.totalCible}. Il te manque ${t.totalReste} séries, réparties sur ${t.seancesRestantes} séance${pluriel}.`
+  return `Cette semaine tu as fait ${t.totalRealise} séries sur ${t.totalCible}. Il te manque ${t.totalReste} séries, réparties sur ${t.seancesRestantes} séance${pluriel}.`
 }
 
 export function alerteImpossible(t: TableauBordSemaine): string | null {
   if (t.seancesRestantes === 0 || t.totalReste === 0) return null
   if (t.totalReste <= t.seancesRestantes * 15) return null
   const priorites = [...t.groupes]
-    .filter((g) => g.cibleSeries - g.seriesEfficaces > 0)
-    .sort((a, b) => b.cibleSeries - b.seriesEfficaces - (a.cibleSeries - a.seriesEfficaces))
+    .filter((g) => g.cibleSeries - g.totalSeries > 0)
+    .sort((a, b) => b.cibleSeries - b.totalSeries - (a.cibleSeries - a.totalSeries))
     .slice(0, 3)
     .map((g) => g.groupe.toLowerCase())
   return `Il reste ${t.seancesRestantes} séance${t.seancesRestantes > 1 ? 's' : ''} pour ${t.totalReste} séries. C'est trop. Priorise ${priorites.join(', ')}.`
@@ -230,7 +226,7 @@ export function debutSemaineActuelle(reference = new Date()): Date {
 
 export interface RecapSemaine {
   debut: Date
-  totalEfficaces: number
+  totalRealise: number
   totalCible: number
   seancesFaites: number
 }
@@ -243,7 +239,7 @@ export async function recapitulatifQuatreSemaines(reference = new Date()): Promi
     const t = await tableauBordSemaine(ref)
     resultats.push({
       debut: debutSemaine(ref),
-      totalEfficaces: t.totalEfficaces,
+      totalRealise: t.totalRealise,
       totalCible: t.totalCible,
       seancesFaites: t.seancesFaites,
     })

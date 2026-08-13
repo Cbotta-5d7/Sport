@@ -6,7 +6,7 @@ import {
   seanceExercicesAvecDetails,
   seriesPourSeanceExercice,
   historiqueExercice,
-  seriesEfficacesSemaine,
+  seriesSemaineGroupe,
 } from '../../db/queries'
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
 import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
@@ -129,8 +129,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     undefined,
   )
 
-  const efficacesSemaineGroupe = useLiveQuery(
-    () => (seActuel ? seriesEfficacesSemaine(seActuel.exercice.groupeMusculaire) : Promise.resolve(0)),
+  const seriesSemaineGroupeActif = useLiveQuery(
+    () => (seActuel ? seriesSemaineGroupe(seActuel.exercice.groupeMusculaire) : Promise.resolve(0)),
     [seActuel?.exercice.groupeMusculaire, seriesGroupeActif.length],
     0,
   )
@@ -335,8 +335,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       if (exercicesIncomplets.length === 0) continue
 
       const cible = await db.ciblesVolume.get(groupe as Exercice['groupeMusculaire'])
-      const efficaces = await seriesEfficacesSemaine(groupe as Exercice['groupeMusculaire'])
-      const manque = Math.max(0, (cible?.seriesCibleSemaine ?? 0) - efficaces)
+      const faites = await seriesSemaineGroupe(groupe as Exercice['groupeMusculaire'])
+      const manque = Math.max(0, (cible?.seriesCibleSemaine ?? 0) - faites)
 
       resultat.push({
         groupe: groupe as Exercice['groupeMusculaire'],
@@ -429,13 +429,13 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         {cibleGroupeActif && (
           <div>
             <p className="text-xs text-slate-400">
-              Semaine : {efficacesSemaineGroupe}/{cibleGroupeActif.seriesCibleSemaine} séries efficaces
+              Semaine : {seriesSemaineGroupeActif}/{cibleGroupeActif.seriesCibleSemaine} séries
             </p>
             <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
               <div
                 className="h-full bg-accent"
                 style={{
-                  width: `${Math.min(100, (efficacesSemaineGroupe / cibleGroupeActif.seriesCibleSemaine) * 100)}%`,
+                  width: `${Math.min(100, (seriesSemaineGroupeActif / cibleGroupeActif.seriesCibleSemaine) * 100)}%`,
                 }}
               />
             </div>
