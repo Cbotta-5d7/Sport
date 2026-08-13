@@ -40,7 +40,6 @@ interface Props {
 interface EntreeEnCours {
   poidsKg: number
   reps: number
-  rir: number | null
 }
 
 export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, onVoirHistorique }: Props) {
@@ -72,7 +71,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     [] as { seance: { date: string }; series: Serie[] }[],
   )
 
-  const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0, rir: null })
+  const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0 })
   const [entreeReduite, setEntreeReduite] = useState(false)
   const [confirmationAnnulation, setConfirmationAnnulation] = useState(false)
   const [annulationEnCours, setAnnulationEnCours] = useState(false)
@@ -88,13 +87,13 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     if (!seActuel) return
     if (seriesActuelles.length > 0) {
       const derniere = seriesActuelles[seriesActuelles.length - 1]
-      setEntree({ poidsKg: derniere.poidsKg, reps: derniere.reps, rir: null })
+      setEntree({ poidsKg: derniere.poidsKg, reps: derniere.reps })
       return
     }
     const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
     const avantDernieresTravail = (historiqueExo[1]?.series ?? []).filter((s) => s.type !== 'échauffement')
     const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
-    setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible, rir: null })
+    setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seActuel?.id, seriesActuelles.length, historiqueExo])
 
@@ -166,7 +165,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   async function validerSerie() {
     if (!seActuel) return
-    if (entree.rir === null) return
 
     setCoach(null)
     const maintenant = nowIso()
@@ -188,7 +186,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       poidsKg: entree.poidsKg,
       reps: entree.reps,
       type: 'normale',
-      rir: entree.rir,
+      rir: null,
       reposReelSec: null,
       validee: true,
       estRecord,
@@ -603,10 +601,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
             poidsKg={entree.poidsKg}
             reps={entree.reps}
             incrementKg={seActuel.exercice.incrementKg}
-            rir={entree.rir}
             onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
             onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
-            onChoisirRir={(rir) => setEntree((e) => ({ ...e, rir }))}
             onValider={validerSerie}
           />
         )}

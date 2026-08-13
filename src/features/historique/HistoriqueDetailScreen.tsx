@@ -6,7 +6,6 @@ import { seanceExercicesAvecDetails, type SeanceExerciceAvecExercice } from '../
 import { supprimerSeance, reprendreSeance } from '../../db/historique'
 import { formatDateLongueFR, nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
-import { OPTIONS_RIR } from '../../db/rir'
 import { ClavierNumerique } from '../seance/ClavierNumerique'
 
 const TYPES: TypeSerie[] = ['normale', 'échauffement', 'dégressive', 'échec']
@@ -72,10 +71,6 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
 
   async function changerType(serie: Serie, type: TypeSerie) {
     await db.series.update(serie.id, { type })
-  }
-
-  async function changerRir(serie: Serie, rir: number) {
-    await db.series.update(serie.id, { rir })
   }
 
   async function confirmerSuppressionSeance() {
@@ -176,7 +171,7 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
                       ✕
                     </button>
                   </div>
-                  <div className="mb-1 flex gap-1 overflow-x-auto">
+                  <div className="flex gap-1 overflow-x-auto">
                     {TYPES.map((t) => (
                       <button
                         key={t}
@@ -187,20 +182,6 @@ export function HistoriqueDetailScreen({ seanceId, onRetour, onSupprimee, onRepr
                         }`}
                       >
                         {t}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-1">
-                    {OPTIONS_RIR.map((o) => (
-                      <button
-                        key={o.valeur}
-                        type="button"
-                        onClick={() => changerRir(s, o.valeur)}
-                        className={`min-h-7 flex-1 rounded-lg border text-xs ${
-                          s.rir === o.valeur ? 'border-accent text-accent' : 'border-slate-300 text-slate-400'
-                        }`}
-                      >
-                        {o.libelle}
                       </button>
                     ))}
                   </div>

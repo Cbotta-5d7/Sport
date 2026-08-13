@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAppuiRepete } from '../../hooks/useAppuiRepete'
 import { ClavierNumerique } from './ClavierNumerique'
-import { SelecteurRIR } from './SelecteurRIR'
 import { formatKg } from '../../utils/nombres'
 
 interface Props {
@@ -9,10 +8,8 @@ interface Props {
   poidsKg: number
   reps: number
   incrementKg: number
-  rir: number | null
   onChangerPoids: (poids: number) => void
   onChangerReps: (reps: number) => void
-  onChoisirRir: (rir: number) => void
   onValider: () => void
 }
 
@@ -21,10 +18,8 @@ export function EntreeSerie({
   poidsKg,
   reps,
   incrementKg,
-  rir,
   onChangerPoids,
   onChangerReps,
-  onChoisirRir,
   onValider,
 }: Props) {
   const [clavier, setClavier] = useState<'poids' | 'reps' | null>(null)
@@ -33,8 +28,6 @@ export function EntreeSerie({
   const appuiPlusPoids = useAppuiRepete(() => onChangerPoids(poidsKg + incrementKg))
   const appuiMoinsReps = useAppuiRepete(() => onChangerReps(Math.max(0, reps - 1)))
   const appuiPlusReps = useAppuiRepete(() => onChangerReps(reps + 1))
-
-  const rirManquant = rir === null
 
   return (
     <div
@@ -91,16 +84,10 @@ export function EntreeSerie({
         </button>
       </div>
 
-      <div>
-        <p className="mb-1 text-xs text-slate-400">RIR (répétitions en réserve)</p>
-        <SelecteurRIR valeur={rir} onChoisir={onChoisirRir} />
-      </div>
-
       <button
         type="button"
         onClick={onValider}
-        disabled={rirManquant}
-        className="min-h-14 rounded-2xl bg-accent text-lg font-semibold text-slate-950 disabled:opacity-40"
+        className="min-h-14 rounded-2xl bg-accent text-lg font-semibold text-slate-950"
       >
         Valider la série
       </button>
