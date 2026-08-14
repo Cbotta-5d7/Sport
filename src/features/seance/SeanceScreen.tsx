@@ -26,6 +26,7 @@ import { BlocDerniereFois } from './BlocDerniereFois'
 import { BlocTonnage } from './BlocTonnage'
 import { ModaleChoixExercice } from './ModaleChoixExercice'
 import { ModaleNoteSeance } from './ModaleNoteSeance'
+import { ModaleNoteExercice } from './ModaleNoteExercice'
 import { AlerteFinSeance, type AlerteGroupe } from './AlerteFinSeance'
 import { IndicateurSync } from '../reglages/IndicateurSync'
 
@@ -100,6 +101,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
   const [modaleChoix, setModaleChoix] = useState<'ajouter' | 'remplacer' | null>(null)
   const [indexRemplacement, setIndexRemplacement] = useState<number | null>(null)
   const [modaleNote, setModaleNote] = useState(false)
+  const [modaleNoteExercice, setModaleNoteExercice] = useState(false)
   const [alertes, setAlertes] = useState<AlerteGroupe[] | null>(null)
   const [coach, setCoach] = useState<{ texte: string; action: () => void } | null>(null)
   const [dernierRecord, setDernierRecord] = useState<string | null>(null)
@@ -372,7 +374,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
   }
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>
@@ -394,6 +396,14 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
               className="flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
             >
               📜
+            </button>
+            <button
+              type="button"
+              onClick={() => setModaleNoteExercice(true)}
+              aria-label={`Note sur ${seActuel.exercice.nom}`}
+              className="flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
+            >
+              ℹ️
             </button>
             <button
               type="button"
@@ -628,6 +638,18 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
             setModaleNote(false)
           }}
           onFermer={() => setModaleNote(false)}
+        />
+      )}
+
+      {modaleNoteExercice && (
+        <ModaleNoteExercice
+          nomExercice={seActuel.exercice.nom}
+          noteInitiale={seActuel.exercice.notes}
+          onEnregistrer={async (note) => {
+            await db.exercices.update(seActuel.exerciceId, { notes: note })
+            setModaleNoteExercice(false)
+          }}
+          onFermer={() => setModaleNoteExercice(false)}
         />
       )}
 

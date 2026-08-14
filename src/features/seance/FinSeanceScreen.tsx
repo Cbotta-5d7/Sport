@@ -74,8 +74,12 @@ async function construireRecap(seanceId: number): Promise<Recap | null> {
     for (const se of sesExosAvant) {
       seriesAvant = seriesAvant.concat(await db.series.where('seanceExerciceId').equals(se.id).toArray())
     }
-    const tonnageAvant = tonnageTotal(seriesAvant.filter(estSerieDeTravail))
-    variationTonnagePrecedente = variationPourcent(tonnageSeance, tonnageAvant)
+    const travailAvant = seriesAvant.filter(estSerieDeTravail)
+    const tonnageParSerieAvant = travailAvant.length > 0 ? tonnageTotal(travailAvant) / travailAvant.length : 0
+    const travailActuel = toutesLesSeries.filter(estSerieDeTravail)
+    const tonnageParSerieActuel = travailActuel.length > 0 ? tonnageSeance / travailActuel.length : 0
+    variationTonnagePrecedente =
+      tonnageParSerieAvant > 0 ? variationPourcent(tonnageParSerieActuel, tonnageParSerieAvant) : null
   }
 
   return { seance, tonnageTotal: tonnageSeance, parGroupe, records, variationTonnagePrecedente }
