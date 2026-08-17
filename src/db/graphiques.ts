@@ -42,7 +42,7 @@ export async function chargeEt1RMParSemaine(exerciceId: number, nbSemaines = 12)
       for (const s of h.series.filter(estSerieDeTravail)) {
         chargeMax = Math.max(chargeMax, s.poidsKg)
         const rm = estimation1RM(s.poidsKg, s.reps)
-        if (rm) rm1 = Math.max(rm1, rm.valeur)
+        if (rm && rm.fiable) rm1 = Math.max(rm1, rm.valeur)
       }
     }
     return { semaine: libelleSemaine(debut), chargeMax, rm1: rm1 > 0 ? rm1 : null }
@@ -165,7 +165,7 @@ export async function indiceChargeGroupe(groupe: GroupeMusculaire, nbSemaines = 
         if (d < debut || d >= fin) continue
         for (const s of h.series.filter(estSerieDeTravail)) {
           const rm = estimation1RM(s.poidsKg, s.reps)
-          if (rm) meilleur = Math.max(meilleur, rm.valeur)
+          if (rm && rm.fiable) meilleur = Math.max(meilleur, rm.valeur)
         }
       }
       if (meilleur > 0) rmParSemaine[i].push(meilleur)

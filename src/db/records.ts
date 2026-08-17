@@ -30,12 +30,15 @@ export async function detecterRecord(
   const meilleurVolume = Math.max(...existantes.map((s) => volumeSerie(s.poidsKg, s.reps)))
   const rmActuel = estimation1RM(poidsKg, reps)
   const meilleurRM = Math.max(
-    ...existantes.map((s) => estimation1RM(s.poidsKg, s.reps)?.valeur ?? 0),
+    ...existantes.map((s) => {
+      const rm = estimation1RM(s.poidsKg, s.reps)
+      return rm && rm.fiable ? rm.valeur : 0
+    }),
   )
 
   return {
     poids: poidsKg > meilleurPoids,
-    rm: rmActuel !== null && rmActuel.valeur > meilleurRM,
+    rm: rmActuel !== null && rmActuel.fiable && rmActuel.valeur > meilleurRM,
     volume: volumeSerie(poidsKg, reps) > meilleurVolume,
   }
 }
