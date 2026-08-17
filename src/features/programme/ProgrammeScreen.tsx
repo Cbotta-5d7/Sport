@@ -1,0 +1,206 @@
+import { useState } from 'react'
+import { useLiveQuery } from 'dexie-react-hooks'
+import type { Exercice } from '../../db/types'
+import {
+  listerProgrammes,
+  exercicesProgramme,
+  creerProgramme,
+  renommerProgramme,
+  supprimerProgramme,
+  ajouterExerciceProgramme,
+  retirerExerciceProgramme,
+  majSeriesProgramme,
+  type ProgrammeExerciceAvecExercice,
+} from '../../db/programme'
+import { ModaleChoixExercice } from '../seance/ModaleChoixExercice'
+
+interface Props {
+  onRetour: () => void
+}
+
+function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string }) {
+  const exercices = useLiveQuery(
+    () => exercicesProgramme(programmeId),
+    [programmeId],
+    [] as ProgrammeExerciceAvecExercice[],
+  )
+  const [renommage, setRenommage] = useState(false)
+  const [nomEdite, setNomEdite] = useState(nom)
+  const [modaleChoix, setModaleChoix] = useState(false)
+  const [confirmationSuppression, setConfirmationSuppression] = useState(false)
+
+  const totalSeries = exercices.reduce((a, e) => a + e.seriesCibles, 0)
+
+  return (
+    <div className="mb-6 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        {renommage ? (
+          <input
+            autoFocus
+            value={nomEdite}
+            onChange={(e) => setNomEdite(e.target.value)}
+            onBlur={async () => {
+              setRenommage(false)
+              if (nomEdite.trim()) await renommerProgramme(programmeId, nomEdite.trim())
+              else setNomEdite(nom)
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && (e.target as HTMLInputElement).blur()}
+            className="min-h-9 flex-1 rounded-lg border border-accent px-2 text-lg font-semibold text-slate-900 outline-none"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setRenommage(true)}
+            className="text-lg font-semibold text-slate-900"
+          >
+            {nom}
+          </button>
+        )}
+        <span className="shrink-0 text-xs text-slate-400">{totalSeries} séries</span>
+        <button
+          type="button"
+          onClick={() => setConfirmationSuppression(true)}
+          aria-label={`Supprimer ${nom}`}
+          className="flex min-h-8 min-w-8 shrink-0 items-center justify-center rounded-lg text-red-400"
+        >
+          🗑
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {exercices.map((pe) => (
+          <div
+            key={pe.id}
+            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-slate-800">{pe.exercice.nom}</p>
+              <p className="text-xs text-slate-400">{pe.exercice.groupeMusculaire}</p>
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => majSeriesProgramme(pe.id, pe.seriesCibles - 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
+              >
+                −
+              </button>
+              <span className="w-6 text-center text-sm text-slate-800">{pe.seriesCibles}</span>
+              <button
+                type="button"
+                onClick={() => majSeriesProgramme(pe.id, pe.seriesCibles + 1)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600"
+              >
+                +
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => retirerExerciceProgramme(pe.id)}
+              aria-label={`Retirer ${pe.exercice.nom}`}
+              className="min-h-8 min-w-8 text-slate-400"
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setModaleChoix(true)}
+        className="mt-2 min-h-10 w-full rounded-xl border border-dashed border-slate-300 text-sm text-slate-500"
+      >
+        + Exercice
+      </button>
+
+      {modaleChoix && (
+        <ModaleChoixExercice
+          titre={`Ajouter à ${nom}`}
+          onChoisir={async (exercice: Exercice) => {
+            await ajouterExerciceProgramme(programmeId, exercice)
+            setModaleChoix(false)
+          }}
+          onFermer={() => setModaleChoix(false)}
+        />
+      )}
+
+      {confirmationSuppression && (
+        <div
+          className="fixed inset-0 z-30 flex items-end justify-center bg-black/60"
+          onClick={() => setConfirmationSuppression(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-5"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 1.25rem)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="mb-2 text-lg font-semibold text-slate-900">Supprimer {nom} ?</h2>
+            <p className="mb-4 text-sm text-slate-500">Cette séance-type et ses exercices seront supprimés.</p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmationSuppression(false)}
+                className="min-h-14 flex-1 rounded-2xl border border-slate-300 text-slate-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => supprimerProgramme(programmeId)}
+                className="min-h-14 flex-1 rounded-2xl bg-red-600 font-semibold text-white"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function ProgrammeScreen({ onRetour }: Props) {
+  const programmes = useLiveQuery(() => listerProgrammes(), [], undefined)
+
+  async function ajouterJour() {
+    await creerProgramme(`Jour ${(programmes?.length ?? 0) + 1}`)
+  }
+
+  return (
+    <div
+      className="flex min-h-dvh flex-col px-4 pb-10"
+      style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}
+    >
+      <header className="mb-4 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onRetour}
+          className="min-h-11 min-w-11 rounded-xl border border-slate-300 text-slate-600"
+        >
+          ←
+        </button>
+        <h1 className="text-xl font-semibold">Programme</h1>
+      </header>
+
+      <p className="mb-4 text-sm text-slate-500">
+        Ton programme sert de repère : à toi de le suivre en lançant une séance depuis Accueil sur les groupes du
+        jour. Ajuste les exercices et les séries ici.
+      </p>
+
+      {!programmes && <p className="text-slate-400">Chargement…</p>}
+
+      {programmes?.map((p) => (
+        <JourProgramme key={p.id} programmeId={p.id} nom={p.nom} />
+      ))}
+
+      <button
+        type="button"
+        onClick={ajouterJour}
+        className="min-h-12 rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500"
+      >
+        + Ajouter un jour
+      </button>
+    </div>
+  )
+}

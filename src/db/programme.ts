@@ -1,0 +1,62 @@
+import { db } from './schema'
+import type { Exercice, Programme, ProgrammeExercice } from './types'
+
+export interface ProgrammeExerciceAvecExercice extends ProgrammeExercice {
+  exercice: Exercice
+}
+
+export async function listerProgrammes(): Promise<Programme[]> {
+  return (await db.programmes.toArray()).filter((p) => !p.archive).sort((a, b) => a.ordre - b.ordre)
+}
+
+export async function exercicesProgramme(programmeId: number): Promise<ProgrammeExerciceAvecExercice[]> {
+  const liste = (await db.programmeExercices.where('programmeId').equals(programmeId).toArray()).sort(
+    (a, b) => a.ordre - b.ordre,
+  )
+  const resultats: ProgrammeExerciceAvecExercice[] = []
+  for (const pe of liste) {
+    const exercice = await db.exercices.get(pe.exerciceId)
+    if (exercice) resultats.push({ ...pe, exercice })
+  }
+  return resultats
+}
+
+export async function creerProgramme(nom: string): Promise<number> {
+  const ordreMax = (await db.programmes.toArray()).reduce((max, p) => Math.max(max, p.ordre), -1)
+  return db.programmes.add({ nom, ordre: ordreMax + 1, archive: false })
+}
+
+export async function renommerProgramme(programmeId: number, nom: string): Promise<void> {
+  await db.programmes.update(programmeId, { nom })
+}
+
+export async function supprimerProgramme(programmeId: number): Promise<void> {
+  await db.transaction('rw', db.programmes, db.programmeExercices, async () => {
+    await db.programmeExercices.where('programmeId').equals(programmeId).delete()
+    await db.programmes.delete(programmeId)
+  })
+}
+
+export async function ajouterExerciceProgramme(programmeId: number, exercice: Exercice): Promise<number> {
+  const ordreMax = (await db.programmeExercices.where('programmeId').equals(programmeId).toArray()).reduce(
+    (max, pe) => Math.max(max, pe.ordre),
+    -1,
+  )
+  return db.programmeExercices.add({
+    programmeId,
+    exerciceId: exercice.id,
+    ordre: ordreMax + 1,
+    seriesCibles: exercice.seriesCibleDefaut,
+    repsCibleMin: exercice.repsCibleMin,
+    repsCibleMax: exercice.repsCibleMax,
+    reposSec: exercice.reposDefautSec,
+  })
+}
+
+export async function retirerExerciceProgramme(programmeExerciceId: number): Promise<void> {
+  await db.programmeExercices.delete(programmeExerciceId)
+}
+
+export async function majSeriesProgramme(programmeExerciceId: number, seriesCibles: number): Promise<void> {
+  await db.programmeExercices.update(programmeExerciceId, { seriesCibles: Math.max(1, seriesCibles) })
+}

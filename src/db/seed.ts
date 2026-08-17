@@ -94,6 +94,93 @@ const REGLAGES_DEPART: Record<string, string> = {
   vitessePriseDeMasseCibleMaxGSemaine: '400',
 }
 
+interface ExerciceProgrammeDepart {
+  nomExercice: string
+  seriesCibles: number
+}
+
+interface ProgrammeDepart {
+  nom: string
+  exercices: ExerciceProgrammeDepart[]
+}
+
+const PROGRAMME_DEPART: ProgrammeDepart[] = [
+  {
+    nom: 'Push A',
+    exercices: [
+      { nomExercice: 'Développé couché barre', seriesCibles: 3 },
+      { nomExercice: 'Développé incliné haltères', seriesCibles: 3 },
+      { nomExercice: 'Écarté à la poulie', seriesCibles: 2 },
+      { nomExercice: 'Développé militaire haltères', seriesCibles: 3 },
+      { nomExercice: 'Élévations latérales', seriesCibles: 3 },
+      { nomExercice: 'Barre au front', seriesCibles: 3 },
+      { nomExercice: 'Extension corde à la poulie', seriesCibles: 2 },
+    ],
+  },
+  {
+    nom: 'Pull + Legs A',
+    exercices: [
+      { nomExercice: 'Tirage vertical (prise large)', seriesCibles: 3 },
+      { nomExercice: 'Rowing machine poitrine appuyée', seriesCibles: 2 },
+      { nomExercice: 'Tirage horizontal poulie', seriesCibles: 2 },
+      { nomExercice: 'Curl barre EZ', seriesCibles: 3 },
+      { nomExercice: 'Curl incliné haltères', seriesCibles: 2 },
+      { nomExercice: 'Squat ou Hack Squat', seriesCibles: 2 },
+      { nomExercice: 'Leg Curl allongé ou assis', seriesCibles: 2 },
+      { nomExercice: 'Soulevé de terre jambes tendues', seriesCibles: 2 },
+    ],
+  },
+  {
+    nom: 'Push B',
+    exercices: [
+      { nomExercice: 'Développé couché barre', seriesCibles: 3 },
+      { nomExercice: 'Développé incliné haltères', seriesCibles: 3 },
+      { nomExercice: 'Écarté à la poulie', seriesCibles: 2 },
+      { nomExercice: 'Développé militaire haltères', seriesCibles: 3 },
+      { nomExercice: 'Élévations latérales', seriesCibles: 3 },
+      { nomExercice: 'Barre au front', seriesCibles: 3 },
+      { nomExercice: 'Extension corde à la poulie', seriesCibles: 2 },
+    ],
+  },
+  {
+    nom: 'Pull + Legs B',
+    exercices: [
+      { nomExercice: 'Tirage vertical (prise large)', seriesCibles: 3 },
+      { nomExercice: 'Rowing machine poitrine appuyée', seriesCibles: 2 },
+      { nomExercice: 'Tirage horizontal poulie', seriesCibles: 2 },
+      { nomExercice: 'Curl barre EZ', seriesCibles: 3 },
+      { nomExercice: 'Curl incliné haltères', seriesCibles: 2 },
+      { nomExercice: 'Squat ou Hack Squat', seriesCibles: 2 },
+      { nomExercice: 'Mollets debout', seriesCibles: 3 },
+      { nomExercice: 'Mollets assis', seriesCibles: 3 },
+    ],
+  },
+]
+
+export async function initialiserProgrammeParDefaut(): Promise<void> {
+  await db.transaction('rw', db.programmes, db.programmeExercices, db.exercices, async () => {
+    const nbProgrammes = await db.programmes.count()
+    if (nbProgrammes > 0) return
+
+    for (const [index, jour] of PROGRAMME_DEPART.entries()) {
+      const programmeId = await db.programmes.add({ nom: jour.nom, ordre: index, archive: false })
+      for (const [ordre, item] of jour.exercices.entries()) {
+        const exercice = await db.exercices.where('nom').equals(item.nomExercice).first()
+        if (!exercice) continue
+        await db.programmeExercices.add({
+          programmeId,
+          exerciceId: exercice.id,
+          ordre,
+          seriesCibles: item.seriesCibles,
+          repsCibleMin: exercice.repsCibleMin,
+          repsCibleMax: exercice.repsCibleMax,
+          reposSec: exercice.reposDefautSec,
+        })
+      }
+    }
+  })
+}
+
 export async function initialiserDonneesParDefaut(): Promise<void> {
   await db.transaction(
     'rw',

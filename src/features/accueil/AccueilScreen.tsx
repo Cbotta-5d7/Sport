@@ -17,6 +17,7 @@ interface Props {
   onOuvrirGlobale: () => void
   onOuvrirGroupe: (groupe: GroupeMusculaire) => void
   onOuvrirHistorique: () => void
+  onOuvrirProgramme: () => void
 }
 
 const HEURES_RECUPERATION = 72
@@ -36,6 +37,7 @@ export function AccueilScreen({
   onOuvrirGlobale,
   onOuvrirGroupe,
   onOuvrirHistorique,
+  onOuvrirProgramme,
 }: Props) {
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
@@ -109,6 +111,9 @@ export function AccueilScreen({
       {maintenant.getDay() === 0 && <RecapClotureSemaine />}
 
       <div className="mb-4 flex gap-2 overflow-x-auto">
+        <button type="button" onClick={onOuvrirProgramme} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
+          📋 Programme
+        </button>
         <button type="button" onClick={onOuvrirExercices} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Exercices
         </button>

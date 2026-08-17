@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense, useState, type ReactNode } from 'react'
-import { initialiserDonneesParDefaut } from './db/seed'
+import { initialiserDonneesParDefaut, initialiserProgrammeParDefaut } from './db/seed'
 import { seanceEnCours } from './db/queries'
 import { synchroniserMaintenant } from './sync/synchroniser'
 import { AccueilScreen } from './features/accueil/AccueilScreen'
@@ -37,6 +37,9 @@ const HistoriqueScreen = lazy(() =>
 const HistoriqueDetailScreen = lazy(() =>
   import('./features/historique/HistoriqueDetailScreen').then((m) => ({ default: m.HistoriqueDetailScreen })),
 )
+const ProgrammeScreen = lazy(() =>
+  import('./features/programme/ProgrammeScreen').then((m) => ({ default: m.ProgrammeScreen })),
+)
 
 function ChargementEcran() {
   return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
@@ -59,6 +62,7 @@ type Vue =
   | { nom: 'calculateur' }
   | { nom: 'historique' }
   | { nom: 'historiqueDetail'; seanceId: number }
+  | { nom: 'programme' }
 
 function App() {
   const [vue, setVue] = useState<Vue>({ nom: 'chargement' })
@@ -67,6 +71,7 @@ function App() {
   useEffect(() => {
     async function demarrer() {
       await initialiserDonneesParDefaut()
+      await initialiserProgrammeParDefaut()
       if (navigator.storage?.persist) {
         navigator.storage.persist().catch(() => {})
       }
@@ -102,6 +107,7 @@ function App() {
         onOuvrirGlobale={() => setVue({ nom: 'globale' })}
         onOuvrirGroupe={(groupe) => setVue({ nom: 'groupeDetail', groupe })}
         onOuvrirHistorique={() => setVue({ nom: 'historique' })}
+        onOuvrirProgramme={() => setVue({ nom: 'programme' })}
       />
     )
   } else if (vue.nom === 'selection') {
@@ -194,7 +200,7 @@ function App() {
         />
       </Suspense>
     )
-  } else {
+  } else if (vue.nom === 'historiqueDetail') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <HistoriqueDetailScreen
@@ -203,6 +209,12 @@ function App() {
           onSupprimee={() => setVue({ nom: 'historique' })}
           onReprise={() => setVue({ nom: 'seance', seanceId: vue.seanceId })}
         />
+      </Suspense>
+    )
+  } else {
+    contenu = (
+      <Suspense fallback={<ChargementEcran />}>
+        <ProgrammeScreen onRetour={() => setVue({ nom: 'accueil' })} />
       </Suspense>
     )
   }
