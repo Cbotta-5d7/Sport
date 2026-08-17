@@ -144,6 +144,7 @@ function App() {
         onRetour={() => setVue({ nom: 'accueil' })}
         onOuvrirSauvegardes={() => setVue({ nom: 'sauvegardes' })}
         onOuvrirCalculateur={() => setVue({ nom: 'calculateur' })}
+        onOuvrirProgramme={() => setVue({ nom: 'programme' })}
       />
     )
   } else if (vue.nom === 'calculateur') {

@@ -14,9 +14,10 @@ interface Props {
   onRetour: () => void
   onOuvrirSauvegardes: () => void
   onOuvrirCalculateur: () => void
+  onOuvrirProgramme: () => void
 }
 
-export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculateur }: Props) {
+export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculateur, onOuvrirProgramme }: Props) {
   const [proprietaire, setProprietaire] = useState('')
   const [depot, setDepot] = useState('')
   const [jeton, setJeton] = useState('')
@@ -125,6 +126,15 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
         </div>
         <IndicateurSync />
       </header>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Programme</h2>
+      <button
+        type="button"
+        onClick={onOuvrirProgramme}
+        className="mb-6 min-h-14 rounded-2xl border border-slate-300 text-slate-700"
+      >
+        📋 Jours d'entraînement et séries par exercice
+      </button>
 
       <h2 className="mb-2 text-sm font-medium text-slate-500">Séances</h2>
       <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 px-4 py-3">
