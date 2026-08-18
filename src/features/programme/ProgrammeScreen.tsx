@@ -10,6 +10,7 @@ import {
   ajouterExerciceProgramme,
   retirerExerciceProgramme,
   majSeriesProgramme,
+  deplacerExerciceProgramme,
   type ProgrammeExerciceAvecExercice,
 } from '../../db/programme'
 import { ModaleChoixExercice } from '../seance/ModaleChoixExercice'
@@ -68,11 +69,31 @@ function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string 
       </div>
 
       <div className="flex flex-col gap-2">
-        {exercices.map((pe) => (
+        {exercices.map((pe, index) => (
           <div
             key={pe.id}
             className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2"
           >
+            <div className="flex shrink-0 flex-col">
+              <button
+                type="button"
+                onClick={() => deplacerExerciceProgramme(programmeId, pe.id, 'haut')}
+                disabled={index === 0}
+                aria-label={`Monter ${pe.exercice.nom}`}
+                className="flex h-6 w-6 items-center justify-center text-slate-400 disabled:opacity-20"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => deplacerExerciceProgramme(programmeId, pe.id, 'bas')}
+                disabled={index === exercices.length - 1}
+                aria-label={`Descendre ${pe.exercice.nom}`}
+                className="flex h-6 w-6 items-center justify-center text-slate-400 disabled:opacity-20"
+              >
+                ▼
+              </button>
+            </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-slate-800">{pe.exercice.nom}</p>
               <p className="text-xs text-slate-400">{pe.exercice.groupeMusculaire}</p>

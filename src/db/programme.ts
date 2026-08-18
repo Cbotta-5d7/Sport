@@ -67,3 +67,23 @@ export async function retirerExerciceProgramme(programmeExerciceId: number): Pro
 export async function majSeriesProgramme(programmeExerciceId: number, seriesCibles: number): Promise<void> {
   await db.programmeExercices.update(programmeExerciceId, { seriesCibles: Math.max(1, seriesCibles) })
 }
+
+export async function deplacerExerciceProgramme(
+  programmeId: number,
+  programmeExerciceId: number,
+  direction: 'haut' | 'bas',
+): Promise<void> {
+  const liste = (await db.programmeExercices.where('programmeId').equals(programmeId).toArray()).sort(
+    (a, b) => a.ordre - b.ordre,
+  )
+  const index = liste.findIndex((pe) => pe.id === programmeExerciceId)
+  const indexVoisin = direction === 'haut' ? index - 1 : index + 1
+  if (index === -1 || indexVoisin < 0 || indexVoisin >= liste.length) return
+
+  const actuel = liste[index]
+  const voisin = liste[indexVoisin]
+  await db.transaction('rw', db.programmeExercices, async () => {
+    await db.programmeExercices.update(actuel.id, { ordre: voisin.ordre })
+    await db.programmeExercices.update(voisin.id, { ordre: actuel.ordre })
+  })
+}
