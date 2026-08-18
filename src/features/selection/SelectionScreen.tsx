@@ -10,6 +10,7 @@ import { db } from '../../db/schema'
 import { ModaleCreationExercice } from '../exercices/ModaleCreationExercice'
 import { nowIso } from '../../utils/dates'
 import { definirPrevisionSeries } from '../../db/prevision'
+import { programmeDuJour, exercicesProgramme } from '../../db/programme'
 
 interface Props {
   groupes: GroupeMusculaire[]
@@ -36,7 +37,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
 
   const donnees = useLiveQuery(
     async () => {
-      const [liste, dejaCochesSet, restants] = await Promise.all([
+      const [liste, dejaCochesSet, restants, programme] = await Promise.all([
         exercicesActifsParGroupes(groupes),
         idsExercicesDerniereSeance(groupes),
         Promise.all(
@@ -46,8 +47,18 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
             return [g, Math.max(0, (cible?.seriesCibleSemaine ?? 0) - faites)] as const
           }),
         ),
+        programmeDuJour(),
       ])
-      return { liste, dejaCochesSet, restantMap: Object.fromEntries(restants) as Record<string, number> }
+      const seriesProgrammeJour = programme
+        ? new Map((await exercicesProgramme(programme.id)).map((pe) => [pe.exerciceId, pe.seriesCibles]))
+        : new Map<number, number>()
+      return {
+        liste,
+        dejaCochesSet,
+        restantMap: Object.fromEntries(restants) as Record<string, number>,
+        seriesProgrammeJour,
+        nomProgrammeJour: programme?.nom ?? null,
+      }
     },
     [groupes],
     null,
@@ -71,6 +82,11 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
 
     const initSelections: Record<number, SelectionExercice> = {}
     for (const e of donnees.liste) {
+      const seriesProgramme = donnees.seriesProgrammeJour.get(e.id!)
+      if (seriesProgramme !== undefined) {
+        initSelections[e.id!] = { coche: true, seriesPrevues: seriesProgramme }
+        continue
+      }
       const coche = donnees.dejaCochesSet.has(e.id!)
       initSelections[e.id!] = {
         coche,
@@ -147,6 +163,12 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         </button>
         <h1 className="text-xl font-semibold">Choix des exercices</h1>
       </header>
+
+      {donnees?.nomProgrammeJour && donnees.seriesProgrammeJour.size > 0 && (
+        <p className="mb-4 rounded-xl border border-accent/40 bg-orange-50 px-3 py-2 text-sm text-accent">
+          Séries pré-remplies d'après ton programme du {donnees.nomProgrammeJour.toLowerCase()}.
+        </p>
+      )}
 
       {groupes.map((groupe) => {
         const restant = restantParGroupe[groupe] ?? 0

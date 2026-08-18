@@ -1,5 +1,6 @@
 import { db } from './schema'
 import type { Exercice, Programme, ProgrammeExercice } from './types'
+import { nomJourSemaineFR } from '../utils/dates'
 
 export interface ProgrammeExerciceAvecExercice extends ProgrammeExercice {
   exercice: Exercice
@@ -7,6 +8,12 @@ export interface ProgrammeExerciceAvecExercice extends ProgrammeExercice {
 
 export async function listerProgrammes(): Promise<Programme[]> {
   return (await db.programmes.toArray()).filter((p) => !p.archive).sort((a, b) => a.ordre - b.ordre)
+}
+
+export async function programmeDuJour(reference = new Date()): Promise<Programme | null> {
+  const nomJour = nomJourSemaineFR(reference)
+  const programmes = await listerProgrammes()
+  return programmes.find((p) => p.nom.trim().toLowerCase() === nomJour) ?? null
 }
 
 export async function exercicesProgramme(programmeId: number): Promise<ProgrammeExerciceAvecExercice[]> {

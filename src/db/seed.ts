@@ -106,7 +106,7 @@ interface ProgrammeDepart {
 
 const PROGRAMME_DEPART: ProgrammeDepart[] = [
   {
-    nom: 'Push A',
+    nom: 'Lundi',
     exercices: [
       { nomExercice: 'Développé couché barre', seriesCibles: 3 },
       { nomExercice: 'Développé incliné haltères', seriesCibles: 3 },
@@ -118,7 +118,7 @@ const PROGRAMME_DEPART: ProgrammeDepart[] = [
     ],
   },
   {
-    nom: 'Pull + Legs A',
+    nom: 'Mardi',
     exercices: [
       { nomExercice: 'Tirage vertical (prise large)', seriesCibles: 3 },
       { nomExercice: 'Rowing machine poitrine appuyée', seriesCibles: 2 },
@@ -131,7 +131,7 @@ const PROGRAMME_DEPART: ProgrammeDepart[] = [
     ],
   },
   {
-    nom: 'Push B',
+    nom: 'Jeudi',
     exercices: [
       { nomExercice: 'Développé couché barre', seriesCibles: 3 },
       { nomExercice: 'Développé incliné haltères', seriesCibles: 3 },
@@ -143,7 +143,7 @@ const PROGRAMME_DEPART: ProgrammeDepart[] = [
     ],
   },
   {
-    nom: 'Pull + Legs B',
+    nom: 'Vendredi',
     exercices: [
       { nomExercice: 'Tirage vertical (prise large)', seriesCibles: 3 },
       { nomExercice: 'Rowing machine poitrine appuyée', seriesCibles: 2 },

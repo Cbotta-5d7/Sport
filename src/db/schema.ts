@@ -222,6 +222,30 @@ export class MusculationDB extends Dexie {
             s.dejaTerminee = false
           })
       })
+
+    this.version(4)
+      .stores({
+        exercices: '++id, nom, groupeMusculaire, archive, estRepere',
+        programmes: '++id, ordre, archive',
+        programmeExercices: '++id, programmeId, exerciceId, ordre',
+        seances: '++id, date, statut',
+        seanceExercices: '++id, seanceId, exerciceId, ordre, statut',
+        series: '++id, seanceExerciceId, numeroSerie, horodatage',
+        ciblesVolume: 'groupeMusculaire',
+        poidsCorporel: '++id, date',
+        reglages: 'cle',
+      })
+      .upgrade(async (tx) => {
+        const renommagesJours: Record<string, string> = {
+          'Push A': 'Lundi',
+          'Pull + Legs A': 'Mardi',
+          'Push B': 'Jeudi',
+          'Pull + Legs B': 'Vendredi',
+        }
+        for (const [ancien, nouveau] of Object.entries(renommagesJours)) {
+          await tx.table('programmes').where('nom').equals(ancien).modify({ nom: nouveau })
+        }
+      })
   }
 }
 
