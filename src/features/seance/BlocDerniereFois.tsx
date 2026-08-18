@@ -55,7 +55,7 @@ async function chargerInfo(exerciceId: number, exerciceRemplaceId?: number | nul
 }
 
 export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuelles }: Props) {
-  const [mode, setMode] = useState<Mode>('cache')
+  const [mode, setMode] = useState<Mode>('historique')
 
   const info = useLiveQuery(() => chargerInfo(exerciceId, exerciceRemplaceId), [exerciceId, exerciceRemplaceId], null)
   const idPourHistorique = info?.idPourHistorique ?? null
