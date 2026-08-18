@@ -242,9 +242,13 @@ export class MusculationDB extends Dexie {
           'Push B': 'Jeudi',
           'Pull + Legs B': 'Vendredi',
         }
-        for (const [ancien, nouveau] of Object.entries(renommagesJours)) {
-          await tx.table('programmes').where('nom').equals(ancien).modify({ nom: nouveau })
-        }
+        await tx
+          .table('programmes')
+          .toCollection()
+          .modify((p: Programme) => {
+            const nouveau = renommagesJours[p.nom]
+            if (nouveau) p.nom = nouveau
+          })
       })
   }
 }
