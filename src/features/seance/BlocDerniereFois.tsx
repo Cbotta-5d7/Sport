@@ -118,11 +118,11 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
       {mode === 'historique' && historique && (
         <div className="mt-2 max-h-64 overflow-y-auto overscroll-contain flex flex-col gap-2 pr-0.5">
           {historique.map((h, i) => (
-            <div key={i} className="rounded-2xl border border-slate-200 px-3 py-2">
-              <p className="mb-1 text-xs text-slate-400">{formatDateLongueFR(new Date(h.seance.date))}</p>
-              <p className="text-sm text-slate-800">
+            <div key={i} className="truncate rounded-2xl border border-slate-200 px-3 py-2 text-sm">
+              <span className="text-slate-400">{formatDateLongueFR(new Date(h.seance.date))} :</span>{' '}
+              <span className="text-slate-800">
                 {h.series.map((s) => `${formatKg(s.poidsKg)}x${s.reps}`).join(', ')}
-              </p>
+              </span>
             </div>
           ))}
         </div>
