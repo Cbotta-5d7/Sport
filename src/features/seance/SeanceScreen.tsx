@@ -22,7 +22,6 @@ import { useWakeLock } from '../../hooks/useWakeLock'
 import { vibrerCourt } from '../../utils/vibration'
 import { EntreeSerie } from './EntreeSerie'
 import { BlocDerniereFois } from './BlocDerniereFois'
-import { BlocTonnage } from './BlocTonnage'
 import { ModaleChoixExercice } from './ModaleChoixExercice'
 import { ModaleNoteSeance } from './ModaleNoteSeance'
 import { ModaleNoteExercice } from './ModaleNoteExercice'
@@ -72,14 +71,12 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
   )
 
   const [entree, setEntree] = useState<EntreeEnCours>({ poidsKg: 0, reps: 0 })
-  const [entreeReduite, setEntreeReduite] = useState(false)
   const [confirmationAnnulation, setConfirmationAnnulation] = useState(false)
   const [annulationEnCours, setAnnulationEnCours] = useState(false)
   const [confirmationSuppressionExo, setConfirmationSuppressionExo] = useState(false)
 
   useEffect(() => {
     setCoach(null)
-    setEntreeReduite(false)
   }, [seActuel?.id])
 
   useEffect(() => {
@@ -476,10 +473,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
           touchStartX.current = null
         }}
       >
-        <div className="mb-3 flex items-center gap-2">
-          <BlocTonnage comparaison={comparaisonTonnage} />
-        </div>
-
         <div className="mb-4">
           <BlocDerniereFois exerciceId={seActuel.exerciceId} exerciceRemplaceId={seActuel.remplaceExerciceId} />
         </div>
@@ -531,31 +524,17 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       </div>
 
       <div className="shrink-0">
-        <button
-          type="button"
-          onClick={() => setEntreeReduite((r) => !r)}
-          className="flex w-full items-center justify-center gap-2 border-t border-slate-200 bg-white py-1.5"
-          style={{ paddingBottom: entreeReduite ? 'calc(env(safe-area-inset-bottom) + 0.375rem)' : undefined }}
-        >
-          <span className="h-1 w-10 rounded-full bg-slate-300" />
-          {entreeReduite && (
-            <span className="text-xs text-slate-500">
-              Série {seriesActuelles.length + 1} · {formatKg(entree.poidsKg)} kg x {entree.reps} · toucher pour agrandir
-            </span>
-          )}
-        </button>
-        {!entreeReduite && (
-          <EntreeSerie
-            numeroSerie={seriesActuelles.length + 1}
-            totalSeries={prevision ?? seActuel.exercice.seriesCibleDefaut}
-            poidsKg={entree.poidsKg}
-            reps={entree.reps}
-            incrementKg={seActuel.exercice.incrementKg}
-            onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
-            onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
-            onValider={validerSerie}
-          />
-        )}
+        <EntreeSerie
+          numeroSerie={seriesActuelles.length + 1}
+          totalSeries={prevision ?? seActuel.exercice.seriesCibleDefaut}
+          poidsKg={entree.poidsKg}
+          reps={entree.reps}
+          incrementKg={seActuel.exercice.incrementKg}
+          comparaisonTonnage={comparaisonTonnage}
+          onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
+          onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
+          onValider={validerSerie}
+        />
       </div>
 
       {modaleChoix && (

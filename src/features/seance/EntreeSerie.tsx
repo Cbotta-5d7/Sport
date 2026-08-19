@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useAppuiRepete } from '../../hooks/useAppuiRepete'
 import { ClavierNumerique } from './ClavierNumerique'
 import { MinuteurRepos } from './MinuteurRepos'
+import { BlocTonnage } from './BlocTonnage'
+import type { ComparaisonTonnage } from '../../utils/tonnageComparaison'
 import { formatKg } from '../../utils/nombres'
 
 interface Props {
@@ -10,6 +12,7 @@ interface Props {
   poidsKg: number
   reps: number
   incrementKg: number
+  comparaisonTonnage: ComparaisonTonnage
   onChangerPoids: (poids: number) => void
   onChangerReps: (reps: number) => void
   onValider: () => void
@@ -21,6 +24,7 @@ export function EntreeSerie({
   poidsKg,
   reps,
   incrementKg,
+  comparaisonTonnage,
   onChangerPoids,
   onChangerReps,
   onValider,
@@ -41,57 +45,55 @@ export function EntreeSerie({
         Série {numeroSerie}/{totalSeries}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5">
         <button
           type="button"
           {...appuiMoinsPoids}
-          className="flex min-h-14 min-w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-800 select-none"
+          className="flex min-h-14 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-800 select-none"
         >
           −
         </button>
         <button
           type="button"
           onClick={() => setClavier('poids')}
-          className="flex min-h-14 flex-1 flex-col items-center justify-center rounded-2xl border border-slate-300"
+          className="flex min-h-14 flex-1 items-center justify-center rounded-2xl border border-slate-300 px-1"
         >
-          <span className="text-2xl font-semibold text-slate-900">{formatKg(poidsKg)} kg</span>
+          <span className="text-lg font-semibold text-slate-900">{formatKg(poidsKg)} kg</span>
         </button>
         <button
           type="button"
           {...appuiPlusPoids}
-          className="flex min-h-14 min-w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-800 select-none"
+          className="flex min-h-14 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-800 select-none"
         >
           +
         </button>
-      </div>
-
-      <div className="flex items-center gap-2">
         <button
           type="button"
           {...appuiMoinsReps}
-          className="flex min-h-14 min-w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-800 select-none"
+          className="flex min-h-14 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-800 select-none"
         >
           −
         </button>
         <button
           type="button"
           onClick={() => setClavier('reps')}
-          className="flex min-h-14 flex-1 flex-col items-center justify-center rounded-2xl border border-slate-300"
+          className="flex min-h-14 flex-1 items-center justify-center rounded-2xl border border-slate-300 px-1"
         >
-          <span className="text-2xl font-semibold text-slate-900">{reps} reps</span>
+          <span className="text-lg font-semibold text-slate-900">{reps} reps</span>
         </button>
         <button
           type="button"
           {...appuiPlusReps}
-          className="flex min-h-14 min-w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl text-slate-800 select-none"
+          className="flex min-h-14 w-10 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xl text-slate-800 select-none"
         >
           +
         </button>
       </div>
 
       <div className="flex items-center justify-between gap-3">
-        <div className="flex-1">
+        <div className="flex flex-1 items-center gap-2">
           <MinuteurRepos />
+          <BlocTonnage comparaison={comparaisonTonnage} />
         </div>
         <button
           type="button"

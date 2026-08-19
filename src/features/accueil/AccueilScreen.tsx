@@ -87,17 +87,17 @@ export function AccueilScreen({
 
       {maintenant.getDay() === 0 && <RecapClotureSemaine />}
 
-      <div className="mb-4 flex gap-2 overflow-x-auto">
-        <button type="button" onClick={onOuvrirProgramme} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
+      <div className="mb-4 grid grid-cols-2 gap-2">
+        <button type="button" onClick={onOuvrirProgramme} className="min-h-14 rounded-xl border border-slate-300 px-2 text-base font-medium text-slate-700">
           📋 Programme
         </button>
-        <button type="button" onClick={onOuvrirExercices} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
+        <button type="button" onClick={onOuvrirExercices} className="min-h-14 rounded-xl border border-slate-300 px-2 text-base font-medium text-slate-700">
           Exercices
         </button>
-        <button type="button" onClick={onOuvrirReperes} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
+        <button type="button" onClick={onOuvrirReperes} className="min-h-14 rounded-xl border border-slate-300 px-2 text-base font-medium text-slate-700">
           ★ Graph
         </button>
-        <button type="button" onClick={onOuvrirHistorique} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
+        <button type="button" onClick={onOuvrirHistorique} className="min-h-14 rounded-xl border border-slate-300 px-2 text-base font-medium text-slate-700">
           Historique
         </button>
       </div>
