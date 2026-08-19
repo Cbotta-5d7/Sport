@@ -14,13 +14,12 @@ import { detecterRecord } from '../../db/records'
 import { supprimerSeance, supprimerSeanceExercice } from '../../db/historique'
 import { nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
-import { calculerSuggestion, texteConsigne, texteCommentaire } from '../../utils/progression'
+import { calculerSuggestion } from '../../utils/progression'
 import { calculerComparaisonTonnage } from '../../utils/tonnageComparaison'
 import { detecterDepassementLarge, detecterChuteReps } from '../../utils/coach'
 import { useChronometre, formatDuree } from '../../hooks/useChronometre'
 import { useWakeLock } from '../../hooks/useWakeLock'
 import { vibrerCourt } from '../../utils/vibration'
-import { MinuteurRepos } from './MinuteurRepos'
 import { EntreeSerie } from './EntreeSerie'
 import { BlocDerniereFois } from './BlocDerniereFois'
 import { BlocTonnage } from './BlocTonnage'
@@ -80,7 +79,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   useEffect(() => {
     setCoach(null)
-    setDernierRecord(null)
     setEntreeReduite(false)
   }, [seActuel?.id])
 
@@ -104,7 +102,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
   const [modaleNoteExercice, setModaleNoteExercice] = useState(false)
   const [alertes, setAlertes] = useState<AlerteGroupe[] | null>(null)
   const [coach, setCoach] = useState<{ texte: string; action: () => void } | null>(null)
-  const [dernierRecord, setDernierRecord] = useState<string | null>(null)
   const longPressRef = useRef<number | null>(null)
   const touchStartX = useRef<number | null>(null)
 
@@ -160,8 +157,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   const estDerniereSerie = seriesActuelles.length + 1 >= (prevision ?? Infinity)
   const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
-  const avantDernieresTravail = (historiqueExo[1]?.series ?? []).filter((s) => s.type !== 'échauffement')
-  const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
   const historiqueRecentSeries = historiqueExo.map((h) => h.series)
   const comparaisonTonnage = calculerComparaisonTonnage(seriesActuelles, dernieresTravail.length ? dernieresTravail : null, historiqueRecentSeries, prevision)
 
@@ -195,15 +190,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       horodatage: maintenant,
     })
 
-    if (estRecord) {
-      const libelles = [
-        record.poids && 'meilleur poids',
-        record.rm && 'meilleur 1RM estimé',
-        record.volume && 'meilleur volume sur une série',
-      ].filter(Boolean)
-      setDernierRecord(`Record : ${libelles.join(', ')} sur ${seActuel.exercice.nom} !`)
-    }
-
     if (estDerniereSerie) {
       await db.seanceExercices.update(seActuel.id, { statut: 'fait' })
     } else if (seActuel.statut === 'a_faire') {
@@ -226,21 +212,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
     await demarrerMinuteur(seActuel.exercice.reposDefautSec, nouvelId)
     vibrerCourt()
-  }
-
-  async function ajouterUneSerie() {
-    if (!seActuel) return
-    const nouvelle = (prevision ?? seriesActuelles.length) + 1
-    await definirPrevisionSeries(seActuel.id, nouvelle)
-    if (seActuel.statut === 'fait') {
-      await db.seanceExercices.update(seActuel.id, { statut: 'en_cours' })
-    }
-  }
-
-  async function passerExercice() {
-    if (!seActuel) return
-    await db.seanceExercices.update(seActuel.id, { statut: 'passe' })
-    if (indexActif < seanceExercices.length - 1) setOngletActif(indexActif + 1)
   }
 
   async function supprimerExercice() {
@@ -378,7 +349,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>
-          <MinuteurRepos />
           <div className="flex items-center gap-2">
             <IndicateurSync />
             <button
@@ -497,13 +467,22 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
           touchStartX.current = null
         }}
       >
-        <span className="mb-2 inline-flex min-h-8 items-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white">
-          Série {seriesActuelles.length}/{prevision ?? seActuel.exercice.seriesCibleDefaut}
-        </span>
-        <p className="mb-2 text-3xl font-bold text-slate-900">{texteConsigne(suggestion)}</p>
-        {suggestion.regle !== 'premiere_fois' && (
-          <p className="mb-4 text-sm text-slate-500">{texteCommentaire(suggestion, dernieresTravail)}</p>
-        )}
+        <div className="mb-3 flex items-center gap-2">
+          <span className="inline-flex min-h-8 items-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white">
+            Série {seriesActuelles.length}/{prevision ?? seActuel.exercice.seriesCibleDefaut}
+          </span>
+          <BlocTonnage comparaison={comparaisonTonnage} />
+          <span className="flex-1" />
+          <button
+            type="button"
+            onClick={demanderSuppressionExercice}
+            disabled={seanceExercices.length <= 1}
+            aria-label="Supprimer cet exercice"
+            className="flex min-h-8 min-w-8 items-center justify-center rounded-lg border border-red-200 text-red-500 disabled:opacity-30"
+          >
+            🗑
+          </button>
+        </div>
 
         <div className="mb-4">
           <BlocDerniereFois
@@ -512,19 +491,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
             seriesActuelles={seriesActuelles}
           />
         </div>
-
-        <div className="mb-4">
-          <BlocTonnage comparaison={comparaisonTonnage} />
-        </div>
-
-        {dernierRecord && (
-          <div className="mb-4 flex items-center justify-between rounded-2xl border border-amber-300 bg-amber-50 px-3 py-2">
-            <p className="text-sm text-amber-700">🏆 {dernierRecord}</p>
-            <button type="button" onClick={() => setDernierRecord(null)} className="min-h-8 min-w-8 text-amber-500">
-              ✕
-            </button>
-          </div>
-        )}
 
         {coach && (
           <div className="mb-4 flex items-center justify-between gap-2 rounded-2xl border border-sky-300 bg-sky-50 px-3 py-2">
@@ -543,52 +509,33 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         )}
 
         {seriesActuelles.length > 0 && (
-          <div className="mb-4 flex flex-col gap-1">
-            {seriesActuelles.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              >
-                <span className="text-slate-600">
-                  Série {s.numeroSerie} · {formatKg(s.poidsKg)} kg x {s.reps}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => db.series.delete(s.id)}
-                  className="min-h-8 min-w-8 text-slate-400"
+          <>
+            <div className="mb-2 flex items-center gap-2">
+              <span className="h-px flex-1 bg-slate-200" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">Aujourd'hui</span>
+              <span className="h-px flex-1 bg-slate-200" />
+            </div>
+            <div className="mb-4 flex flex-col gap-1">
+              {seriesActuelles.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
                 >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
+                  <span className="text-slate-600">
+                    Série {s.numeroSerie} · {formatKg(s.poidsKg)} kg x {s.reps}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => db.series.delete(s.id)}
+                    className="min-h-8 min-w-8 text-slate-400"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>
         )}
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={ajouterUneSerie}
-            className="min-h-11 flex-1 rounded-xl border border-slate-300 text-sm text-slate-600"
-          >
-            + Ajouter une série
-          </button>
-          <button
-            type="button"
-            onClick={passerExercice}
-            className="min-h-11 flex-1 rounded-xl border border-slate-300 text-sm text-slate-600"
-          >
-            Passer cet exercice
-          </button>
-          <button
-            type="button"
-            onClick={demanderSuppressionExercice}
-            disabled={seanceExercices.length <= 1}
-            aria-label="Supprimer cet exercice"
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-red-200 text-red-500 disabled:opacity-30"
-          >
-            🗑
-          </button>
-        </div>
       </div>
 
       <div className="shrink-0">

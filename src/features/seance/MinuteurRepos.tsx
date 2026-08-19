@@ -14,20 +14,14 @@ export function MinuteurRepos() {
     return () => clearTimeout(id)
   }, [etat?.termine, etat?.serieId])
 
-  if (!etat) return null
-
-  const minutes = Math.floor(etat.secondesRestantes / 60)
-  const secondes = etat.secondesRestantes % 60
-
   return (
     <>
       {flash && <div className="pointer-events-none fixed inset-0 z-50 bg-emerald-400/70" />}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-20 select-none text-center text-[7.5rem] font-bold leading-none text-red-600/40"
-      >
-        {minutes}:{String(secondes).padStart(2, '0')}
-      </span>
+      {etat && (
+        <span className="select-none text-3xl font-extrabold leading-none text-red-600">
+          {Math.floor(etat.secondesRestantes / 60)}:{String(etat.secondesRestantes % 60).padStart(2, '0')}
+        </span>
+      )}
     </>
   )
 }

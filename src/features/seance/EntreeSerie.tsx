@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAppuiRepete } from '../../hooks/useAppuiRepete'
 import { ClavierNumerique } from './ClavierNumerique'
+import { MinuteurRepos } from './MinuteurRepos'
 import { formatKg } from '../../utils/nombres'
 
 interface Props {
@@ -84,13 +85,18 @@ export function EntreeSerie({
         </button>
       </div>
 
-      <button
-        type="button"
-        onClick={onValider}
-        className="min-h-14 rounded-2xl bg-accent text-lg font-semibold text-slate-950"
-      >
-        Valider la série
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex-1">
+          <MinuteurRepos />
+        </div>
+        <button
+          type="button"
+          onClick={onValider}
+          className="min-h-14 shrink-0 rounded-2xl bg-accent px-8 text-lg font-semibold text-slate-950"
+        >
+          Valider
+        </button>
+      </div>
 
       {clavier && (
         <ClavierNumerique
