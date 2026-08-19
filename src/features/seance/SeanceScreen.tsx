@@ -452,6 +452,15 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         >
           + Exercice
         </button>
+        <button
+          type="button"
+          onClick={demanderSuppressionExercice}
+          disabled={seanceExercices.length <= 1}
+          aria-label="Supprimer cet exercice"
+          className="flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-red-200 text-red-500 disabled:opacity-30"
+        >
+          🗑
+        </button>
       </div>
 
       <div
@@ -469,16 +478,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       >
         <div className="mb-3 flex items-center gap-2">
           <BlocTonnage comparaison={comparaisonTonnage} />
-          <span className="flex-1" />
-          <button
-            type="button"
-            onClick={demanderSuppressionExercice}
-            disabled={seanceExercices.length <= 1}
-            aria-label="Supprimer cet exercice"
-            className="flex min-h-8 min-w-8 items-center justify-center rounded-lg border border-red-200 text-red-500 disabled:opacity-30"
-          >
-            🗑
-          </button>
         </div>
 
         <div className="mb-4">

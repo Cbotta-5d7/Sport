@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { etatsGroupes } from '../../db/queries'
-import { tableauBordSemaine, phraseSynthese, alerteImpossible } from '../../db/dashboard'
-import { formatDelaiRelatif, formatPlageSemaineFR, nomJourSemaineFR, jourSemaineIndex } from '../../utils/dates'
+import { tableauBordSemaine } from '../../db/dashboard'
+import { formatDelaiRelatif } from '../../utils/dates'
 import { IndicateurSync } from '../reglages/IndicateurSync'
-import { KpiBandeau } from './KpiBandeau'
 import { RecapClotureSemaine } from './RecapClotureSemaine'
 import type { GroupeMusculaire } from '../../db/types'
 
@@ -13,8 +12,6 @@ interface Props {
   onOuvrirReglages: () => void
   onOuvrirExercices: () => void
   onOuvrirReperes: () => void
-  onOuvrirPoids: () => void
-  onOuvrirGlobale: () => void
   onOuvrirGroupe: (groupe: GroupeMusculaire) => void
   onOuvrirHistorique: () => void
   onOuvrirProgramme: () => void
@@ -33,8 +30,6 @@ export function AccueilScreen({
   onOuvrirReglages,
   onOuvrirExercices,
   onOuvrirReperes,
-  onOuvrirPoids,
-  onOuvrirGlobale,
   onOuvrirGroupe,
   onOuvrirHistorique,
   onOuvrirProgramme,
@@ -90,41 +85,17 @@ export function AccueilScreen({
         </div>
       </header>
 
-      {tableau && (
-        <p className="mb-3 text-sm text-slate-500">
-          {formatPlageSemaineFR(maintenant)}, {nomJourSemaineFR(maintenant)}, J+{jourSemaineIndex(maintenant)}.{' '}
-          {tableau.seancesFaites} séance{tableau.seancesFaites > 1 ? 's' : ''} sur {tableau.seancesCible}.
-        </p>
-      )}
-
-      <KpiBandeau />
-
-      {tableau && (
-        <div className="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
-          <p className="text-sm text-slate-700">{phraseSynthese(tableau)}</p>
-          {alerteImpossible(tableau) && (
-            <p className="mt-2 text-sm text-amber-600">{alerteImpossible(tableau)}</p>
-          )}
-        </div>
-      )}
-
       {maintenant.getDay() === 0 && <RecapClotureSemaine />}
 
       <div className="mb-4 flex gap-2 overflow-x-auto">
-        <button type="button" onClick={onOuvrirProgramme} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
+        <button type="button" onClick={onOuvrirProgramme} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
           📋 Programme
         </button>
-        <button type="button" onClick={onOuvrirExercices} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
+        <button type="button" onClick={onOuvrirExercices} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
           Exercices
         </button>
-        <button type="button" onClick={onOuvrirReperes} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
-          ★ Repères
-        </button>
-        <button type="button" onClick={onOuvrirPoids} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
-          Poids de corps
-        </button>
-        <button type="button" onClick={onOuvrirGlobale} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
-          Vue globale
+        <button type="button" onClick={onOuvrirReperes} className="min-h-14 shrink-0 rounded-xl border border-slate-300 px-4 text-base font-medium text-slate-700">
+          ★ Graph
         </button>
         <button type="button" onClick={onOuvrirHistorique} className="min-h-10 shrink-0 rounded-xl border border-slate-300 px-3 text-sm text-slate-600">
           Historique

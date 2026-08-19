@@ -19,14 +19,8 @@ const CalculateurDisquesScreen = lazy(() =>
 const ExerciceDetailScreen = lazy(() =>
   import('./features/exercices/ExerciceDetailScreen').then((m) => ({ default: m.ExerciceDetailScreen })),
 )
-const PoidsCorporelScreen = lazy(() =>
-  import('./features/poids/PoidsCorporelScreen').then((m) => ({ default: m.PoidsCorporelScreen })),
-)
 const GroupeDetailScreen = lazy(() =>
   import('./features/groupes/GroupeDetailScreen').then((m) => ({ default: m.GroupeDetailScreen })),
-)
-const VueGlobaleScreen = lazy(() =>
-  import('./features/globale/VueGlobaleScreen').then((m) => ({ default: m.VueGlobaleScreen })),
 )
 const ReperesScreen = lazy(() =>
   import('./features/reperes/ReperesScreen').then((m) => ({ default: m.ReperesScreen })),
@@ -56,9 +50,7 @@ type Vue =
   | { nom: 'exercices' }
   | { nom: 'exerciceDetail'; exerciceId: number }
   | { nom: 'groupeDetail'; groupe: GroupeMusculaire }
-  | { nom: 'globale' }
   | { nom: 'reperes' }
-  | { nom: 'poids' }
   | { nom: 'calculateur' }
   | { nom: 'historique' }
   | { nom: 'historiqueDetail'; seanceId: number }
@@ -118,8 +110,6 @@ function App() {
         onOuvrirReglages={() => naviguer({ nom: 'reglages' })}
         onOuvrirExercices={() => naviguer({ nom: 'exercices' })}
         onOuvrirReperes={() => naviguer({ nom: 'reperes' })}
-        onOuvrirPoids={() => naviguer({ nom: 'poids' })}
-        onOuvrirGlobale={() => naviguer({ nom: 'globale' })}
         onOuvrirGroupe={(groupe) => naviguer({ nom: 'groupeDetail', groupe })}
         onOuvrirHistorique={() => naviguer({ nom: 'historique' })}
         onOuvrirProgramme={() => naviguer({ nom: 'programme' })}
@@ -189,22 +179,10 @@ function App() {
         <GroupeDetailScreen groupe={vue.groupe} onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
-  } else if (vue.nom === 'globale') {
-    contenu = (
-      <Suspense fallback={<ChargementEcran />}>
-        <VueGlobaleScreen onRetour={() => naviguer({ nom: 'accueil' })} />
-      </Suspense>
-    )
   } else if (vue.nom === 'reperes') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <ReperesScreen onRetour={() => naviguer({ nom: 'accueil' })} />
-      </Suspense>
-    )
-  } else if (vue.nom === 'poids') {
-    contenu = (
-      <Suspense fallback={<ChargementEcran />}>
-        <PoidsCorporelScreen onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   } else if (vue.nom === 'historique') {
