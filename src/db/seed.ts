@@ -3,6 +3,8 @@ import type { CibleVolume, Exercice } from './types'
 
 type NouvelExercice = Omit<Exercice, 'id'>
 
+let compteurOrdre = 0
+
 function exo(
   nom: string,
   groupeMusculaire: Exercice['groupeMusculaire'],
@@ -26,6 +28,7 @@ function exo(
     estRepere,
     archive: false,
     notes: '',
+    ordre: compteurOrdre++,
   }
 }
 

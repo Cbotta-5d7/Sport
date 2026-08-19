@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db } from '../../db/schema'
+import { deplacerExercice } from '../../db/exercices'
 import { GROUPES_MUSCULAIRES, type GroupeMusculaire, type Exercice } from '../../db/types'
 import { ModaleCreationExercice } from './ModaleCreationExercice'
 
@@ -20,7 +21,8 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
     .filter((e) => !e.archive)
     .filter((e) => !filtreGroupe || e.groupeMusculaire === filtreGroupe)
     .filter((e) => e.nom.toLowerCase().includes(recherche.toLowerCase()))
-    .sort((a, b) => a.nom.localeCompare(b.nom, 'fr'))
+    .sort((a, b) => a.ordre - b.ordre)
+  const idsVisibles = filtres.map((e) => e.id)
 
   function apresCreation(exercice: Exercice) {
     setCreationOuverte(false)
@@ -79,19 +81,44 @@ export function ExercicesListScreen({ onRetour, onOuvrirExercice }: Props) {
       </div>
 
       <div className="flex flex-col gap-2">
-        {filtres.map((e) => (
-          <button
+        {filtres.map((e, index) => (
+          <div
             key={e.id}
-            type="button"
-            onClick={() => onOuvrirExercice(e.id)}
-            className="flex min-h-14 items-center justify-between rounded-2xl border border-slate-200 px-4 text-left"
+            className="flex items-center gap-1 rounded-2xl border border-slate-200 pl-1 pr-4"
           >
-            <span className="text-slate-800">
-              {e.estRepere && <span className="mr-1 text-amber-600">★</span>}
-              {e.nom}
-            </span>
-            <span className="text-xs text-slate-400">{e.groupeMusculaire}</span>
-          </button>
+            <div className="flex shrink-0 flex-col">
+              <button
+                type="button"
+                onClick={() => deplacerExercice(idsVisibles, e.id, 'haut')}
+                disabled={index === 0}
+                aria-label={`Monter ${e.nom}`}
+                className="flex h-6 w-6 items-center justify-center text-slate-400 disabled:opacity-20"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                onClick={() => deplacerExercice(idsVisibles, e.id, 'bas')}
+                disabled={index === filtres.length - 1}
+                aria-label={`Descendre ${e.nom}`}
+                className="flex h-6 w-6 items-center justify-center text-slate-400 disabled:opacity-20"
+              >
+                ▼
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => onOuvrirExercice(e.id)}
+              className="flex min-h-14 flex-1 items-center justify-between text-left"
+            >
+              <span className="text-slate-800">
+                {e.estRepere && <span className="mr-1 text-amber-600">★</span>}
+                {e.notes.trim() && <span className="mr-1">📝</span>}
+                {e.nom}
+              </span>
+              <span className="text-xs text-slate-400">{e.groupeMusculaire}</span>
+            </button>
+          </div>
         ))}
         {filtres.length === 0 && <p className="text-sm text-slate-400">Aucun exercice.</p>}
       </div>

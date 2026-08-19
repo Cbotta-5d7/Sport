@@ -26,6 +26,7 @@ import {
   type RepartitionReps,
 } from '../../db/graphiques'
 import { ModaleEditionExercice } from './ModaleEditionExercice'
+import { ModaleNoteExercice } from './ModaleNoteExercice'
 
 const AXE_STYLE = { fontSize: 11, fill: '#64748b' }
 const TOOLTIP_STYLE = { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }
@@ -42,6 +43,7 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
   const nuage = useLiveQuery(() => nuagePoidsReps(exerciceId), [exerciceId], [] as PointNuage[])
   const repartition = useLiveQuery(() => repartitionParFourchette(exerciceId), [exerciceId], [] as RepartitionReps[])
   const [editionOuverte, setEditionOuverte] = useState(false)
+  const [modaleNoteOuverte, setModaleNoteOuverte] = useState(false)
 
   async function basculerRepere() {
     if (!exercice) return
@@ -75,6 +77,14 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
           <h1 className="text-xl font-semibold text-slate-900">{exercice.nom}</h1>
           <p className="text-xs text-slate-400">{exercice.groupeMusculaire}</p>
         </div>
+        <button
+          type="button"
+          onClick={() => setModaleNoteOuverte(true)}
+          aria-label={`Note sur ${exercice.nom}`}
+          className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-slate-300 text-slate-600"
+        >
+          ℹ️
+        </button>
         <button
           type="button"
           onClick={() => setEditionOuverte(true)}
@@ -162,6 +172,18 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
             setEditionOuverte(false)
           }}
           onFermer={() => setEditionOuverte(false)}
+        />
+      )}
+
+      {modaleNoteOuverte && (
+        <ModaleNoteExercice
+          nomExercice={exercice.nom}
+          noteInitiale={exercice.notes}
+          onEnregistrer={async (note) => {
+            await db.exercices.update(exercice.id, { notes: note })
+            setModaleNoteOuverte(false)
+          }}
+          onFermer={() => setModaleNoteOuverte(false)}
         />
       )}
     </div>

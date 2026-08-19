@@ -69,6 +69,7 @@ export interface Exercice {
   estRepere: boolean
   archive: boolean
   notes: string
+  ordre: number
 }
 
 export interface Programme {

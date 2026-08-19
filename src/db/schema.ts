@@ -250,6 +250,25 @@ export class MusculationDB extends Dexie {
             if (nouveau) p.nom = nouveau
           })
       })
+
+    this.version(5)
+      .stores({
+        exercices: '++id, nom, groupeMusculaire, archive, estRepere, ordre',
+        programmes: '++id, ordre, archive',
+        programmeExercices: '++id, programmeId, exerciceId, ordre',
+        seances: '++id, date, statut',
+        seanceExercices: '++id, seanceId, exerciceId, ordre, statut',
+        series: '++id, seanceExerciceId, numeroSerie, horodatage',
+        ciblesVolume: 'groupeMusculaire',
+        poidsCorporel: '++id, date',
+        reglages: 'cle',
+      })
+      .upgrade(async (tx) => {
+        const exercices = ((await tx.table('exercices').toArray()) as Exercice[]).sort((a, b) =>
+          a.nom.localeCompare(b.nom, 'fr'),
+        )
+        await Promise.all(exercices.map((e, index) => tx.table('exercices').update(e.id, { ordre: index })))
+      })
   }
 }
 

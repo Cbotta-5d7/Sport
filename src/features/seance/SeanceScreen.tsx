@@ -24,7 +24,7 @@ import { EntreeSerie } from './EntreeSerie'
 import { BlocDerniereFois } from './BlocDerniereFois'
 import { ModaleChoixExercice } from './ModaleChoixExercice'
 import { ModaleNoteSeance } from './ModaleNoteSeance'
-import { ModaleNoteExercice } from './ModaleNoteExercice'
+import { ModaleNoteExercice } from '../exercices/ModaleNoteExercice'
 import { AlerteFinSeance, type AlerteGroupe } from './AlerteFinSeance'
 import { IndicateurSync } from '../reglages/IndicateurSync'
 

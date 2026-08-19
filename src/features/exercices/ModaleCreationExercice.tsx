@@ -18,12 +18,14 @@ export function ModaleCreationExercice({ groupe, onCree, onFermer }: Props) {
     if (!nomPropre || enCours) return
     setEnCours(true)
     const defauts = defautsPourGroupe(groupe)
+    const dernier = await db.exercices.orderBy('ordre').last()
     const exercice: Omit<Exercice, 'id'> = {
       nom: nomPropre,
       groupeMusculaire: groupe,
       estRepere: false,
       archive: false,
       notes: '',
+      ordre: (dernier?.ordre ?? -1) + 1,
       ...defauts,
     }
     const id = await db.exercices.add(exercice)
