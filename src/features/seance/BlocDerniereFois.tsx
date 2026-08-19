@@ -60,7 +60,7 @@ export function BlocDerniereFois({ exerciceId, exerciceRemplaceId, seriesActuell
   const info = useLiveQuery(() => chargerInfo(exerciceId, exerciceRemplaceId), [exerciceId, exerciceRemplaceId], null)
   const idPourHistorique = info?.idPourHistorique ?? null
   const historique = useLiveQuery(
-    () => (idPourHistorique !== null ? historiqueExercice(idPourHistorique) : Promise.resolve(null)),
+    () => (idPourHistorique !== null ? historiqueExercice(idPourHistorique, 3) : Promise.resolve(null)),
     [idPourHistorique],
     null,
   )

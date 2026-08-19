@@ -76,11 +76,26 @@ function App() {
         navigator.storage.persist().catch(() => {})
       }
       const enCours = await seanceEnCours()
-      setVue(enCours ? { nom: 'seance', seanceId: enCours.id } : { nom: 'accueil' })
+      const vueInitiale: Vue = enCours ? { nom: 'seance', seanceId: enCours.id } : { nom: 'accueil' }
+      window.history.replaceState(vueInitiale, '')
+      setVue(vueInitiale)
       synchroniserMaintenant().catch(() => {})
     }
     demarrer().catch((e) => setErreur(String(e)))
   }, [])
+
+  useEffect(() => {
+    function onPopState(e: PopStateEvent) {
+      setVue((e.state as Vue | null) ?? { nom: 'accueil' })
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  function naviguer(nouvelleVue: Vue) {
+    window.history.pushState(nouvelleVue, '')
+    setVue(nouvelleVue)
+  }
 
   if (erreur) {
     return (
@@ -99,33 +114,33 @@ function App() {
   if (vue.nom === 'accueil') {
     contenu = (
       <AccueilScreen
-        onContinuer={(groupes) => setVue({ nom: 'selection', groupes })}
-        onOuvrirReglages={() => setVue({ nom: 'reglages' })}
-        onOuvrirExercices={() => setVue({ nom: 'exercices' })}
-        onOuvrirReperes={() => setVue({ nom: 'reperes' })}
-        onOuvrirPoids={() => setVue({ nom: 'poids' })}
-        onOuvrirGlobale={() => setVue({ nom: 'globale' })}
-        onOuvrirGroupe={(groupe) => setVue({ nom: 'groupeDetail', groupe })}
-        onOuvrirHistorique={() => setVue({ nom: 'historique' })}
-        onOuvrirProgramme={() => setVue({ nom: 'programme' })}
+        onContinuer={(groupes) => naviguer({ nom: 'selection', groupes })}
+        onOuvrirReglages={() => naviguer({ nom: 'reglages' })}
+        onOuvrirExercices={() => naviguer({ nom: 'exercices' })}
+        onOuvrirReperes={() => naviguer({ nom: 'reperes' })}
+        onOuvrirPoids={() => naviguer({ nom: 'poids' })}
+        onOuvrirGlobale={() => naviguer({ nom: 'globale' })}
+        onOuvrirGroupe={(groupe) => naviguer({ nom: 'groupeDetail', groupe })}
+        onOuvrirHistorique={() => naviguer({ nom: 'historique' })}
+        onOuvrirProgramme={() => naviguer({ nom: 'programme' })}
       />
     )
   } else if (vue.nom === 'selection') {
     contenu = (
       <SelectionScreen
         groupes={vue.groupes}
-        onRetour={() => setVue({ nom: 'accueil' })}
-        onDemarrer={(seanceId) => setVue({ nom: 'seance', seanceId })}
+        onRetour={() => naviguer({ nom: 'accueil' })}
+        onDemarrer={(seanceId) => naviguer({ nom: 'seance', seanceId })}
       />
     )
   } else if (vue.nom === 'seance') {
     contenu = (
       <SeanceScreen
         seanceId={vue.seanceId}
-        onTerminee={() => setVue({ nom: 'finSeance', seanceId: vue.seanceId })}
-        onAnnulee={() => setVue({ nom: 'accueil' })}
-        onVoirAccueil={() => setVue({ nom: 'accueil' })}
-        onVoirHistorique={() => setVue({ nom: 'historique' })}
+        onTerminee={() => naviguer({ nom: 'finSeance', seanceId: vue.seanceId })}
+        onAnnulee={() => naviguer({ nom: 'accueil' })}
+        onVoirAccueil={() => naviguer({ nom: 'accueil' })}
+        onVoirHistorique={() => naviguer({ nom: 'historique' })}
       />
     )
   } else if (vue.nom === 'finSeance') {
@@ -134,70 +149,70 @@ function App() {
         seanceId={vue.seanceId}
         onFermer={() => {
           synchroniserMaintenant().catch(() => {})
-          setVue({ nom: 'accueil' })
+          naviguer({ nom: 'accueil' })
         }}
       />
     )
   } else if (vue.nom === 'reglages') {
     contenu = (
       <ReglagesScreen
-        onRetour={() => setVue({ nom: 'accueil' })}
-        onOuvrirSauvegardes={() => setVue({ nom: 'sauvegardes' })}
-        onOuvrirCalculateur={() => setVue({ nom: 'calculateur' })}
-        onOuvrirProgramme={() => setVue({ nom: 'programme' })}
+        onRetour={() => naviguer({ nom: 'accueil' })}
+        onOuvrirSauvegardes={() => naviguer({ nom: 'sauvegardes' })}
+        onOuvrirCalculateur={() => naviguer({ nom: 'calculateur' })}
+        onOuvrirProgramme={() => naviguer({ nom: 'programme' })}
       />
     )
   } else if (vue.nom === 'calculateur') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <CalculateurDisquesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+        <CalculateurDisquesScreen onRetour={() => naviguer({ nom: 'reglages' })} />
       </Suspense>
     )
   } else if (vue.nom === 'sauvegardes') {
-    contenu = <SauvegardesScreen onRetour={() => setVue({ nom: 'reglages' })} />
+    contenu = <SauvegardesScreen onRetour={() => naviguer({ nom: 'reglages' })} />
   } else if (vue.nom === 'exercices') {
     contenu = (
       <ExercicesListScreen
-        onRetour={() => setVue({ nom: 'accueil' })}
-        onOuvrirExercice={(exerciceId) => setVue({ nom: 'exerciceDetail', exerciceId })}
+        onRetour={() => naviguer({ nom: 'accueil' })}
+        onOuvrirExercice={(exerciceId) => naviguer({ nom: 'exerciceDetail', exerciceId })}
       />
     )
   } else if (vue.nom === 'exerciceDetail') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <ExerciceDetailScreen exerciceId={vue.exerciceId} onRetour={() => setVue({ nom: 'exercices' })} />
+        <ExerciceDetailScreen exerciceId={vue.exerciceId} onRetour={() => naviguer({ nom: 'exercices' })} />
       </Suspense>
     )
   } else if (vue.nom === 'groupeDetail') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <GroupeDetailScreen groupe={vue.groupe} onRetour={() => setVue({ nom: 'accueil' })} />
+        <GroupeDetailScreen groupe={vue.groupe} onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   } else if (vue.nom === 'globale') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <VueGlobaleScreen onRetour={() => setVue({ nom: 'accueil' })} />
+        <VueGlobaleScreen onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   } else if (vue.nom === 'reperes') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <ReperesScreen onRetour={() => setVue({ nom: 'accueil' })} />
+        <ReperesScreen onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   } else if (vue.nom === 'poids') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <PoidsCorporelScreen onRetour={() => setVue({ nom: 'accueil' })} />
+        <PoidsCorporelScreen onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   } else if (vue.nom === 'historique') {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
         <HistoriqueScreen
-          onRetour={() => setVue({ nom: 'accueil' })}
-          onOuvrirSeance={(seanceId) => setVue({ nom: 'historiqueDetail', seanceId })}
+          onRetour={() => naviguer({ nom: 'accueil' })}
+          onOuvrirSeance={(seanceId) => naviguer({ nom: 'historiqueDetail', seanceId })}
         />
       </Suspense>
     )
@@ -206,16 +221,16 @@ function App() {
       <Suspense fallback={<ChargementEcran />}>
         <HistoriqueDetailScreen
           seanceId={vue.seanceId}
-          onRetour={() => setVue({ nom: 'historique' })}
-          onSupprimee={() => setVue({ nom: 'historique' })}
-          onReprise={() => setVue({ nom: 'seance', seanceId: vue.seanceId })}
+          onRetour={() => naviguer({ nom: 'historique' })}
+          onSupprimee={() => naviguer({ nom: 'historique' })}
+          onReprise={() => naviguer({ nom: 'seance', seanceId: vue.seanceId })}
         />
       </Suspense>
     )
   } else {
     contenu = (
       <Suspense fallback={<ChargementEcran />}>
-        <ProgrammeScreen onRetour={() => setVue({ nom: 'accueil' })} />
+        <ProgrammeScreen onRetour={() => naviguer({ nom: 'accueil' })} />
       </Suspense>
     )
   }
@@ -223,7 +238,7 @@ function App() {
   return (
     <>
       {vue.nom !== 'seance' && (
-        <BanniereSeanceEnCours onReprendre={(seanceId) => setVue({ nom: 'seance', seanceId })} />
+        <BanniereSeanceEnCours onReprendre={(seanceId) => naviguer({ nom: 'seance', seanceId })} />
       )}
       {contenu}
     </>
