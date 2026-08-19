@@ -468,9 +468,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         }}
       >
         <div className="mb-3 flex items-center gap-2">
-          <span className="inline-flex min-h-8 items-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white">
-            Série {seriesActuelles.length}/{prevision ?? seActuel.exercice.seriesCibleDefaut}
-          </span>
           <BlocTonnage comparaison={comparaisonTonnage} />
           <span className="flex-1" />
           <button
@@ -485,11 +482,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         </div>
 
         <div className="mb-4">
-          <BlocDerniereFois
-            exerciceId={seActuel.exerciceId}
-            exerciceRemplaceId={seActuel.remplaceExerciceId}
-            seriesActuelles={seriesActuelles}
-          />
+          <BlocDerniereFois exerciceId={seActuel.exerciceId} exerciceRemplaceId={seActuel.remplaceExerciceId} />
         </div>
 
         {coach && (
@@ -555,6 +548,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
         {!entreeReduite && (
           <EntreeSerie
             numeroSerie={seriesActuelles.length + 1}
+            totalSeries={prevision ?? seActuel.exercice.seriesCibleDefaut}
             poidsKg={entree.poidsKg}
             reps={entree.reps}
             incrementKg={seActuel.exercice.incrementKg}

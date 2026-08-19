@@ -6,6 +6,7 @@ import { formatKg } from '../../utils/nombres'
 
 interface Props {
   numeroSerie: number
+  totalSeries: number
   poidsKg: number
   reps: number
   incrementKg: number
@@ -16,6 +17,7 @@ interface Props {
 
 export function EntreeSerie({
   numeroSerie,
+  totalSeries,
   poidsKg,
   reps,
   incrementKg,
@@ -35,7 +37,9 @@ export function EntreeSerie({
       className="flex flex-col gap-3 border-t border-slate-200 bg-slate-50 px-4 pt-3"
       style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}
     >
-      <p className="text-center text-sm text-slate-400">Série {numeroSerie}</p>
+      <p className="text-center text-sm text-slate-400">
+        Série {numeroSerie}/{totalSeries}
+      </p>
 
       <div className="flex items-center gap-2">
         <button
