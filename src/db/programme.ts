@@ -1,6 +1,13 @@
 import { db } from './schema'
-import type { Exercice, Programme, ProgrammeExercice } from './types'
+import type { Exercice, GroupeMusculaire, Programme, ProgrammeExercice } from './types'
+import { GROUPES_PAR_PRIORITE } from './types'
 import { nomJourSemaineFR } from '../utils/dates'
+
+export interface TotalSeriesGroupe {
+  groupe: GroupeMusculaire
+  totalProgramme: number
+  cible: number
+}
 
 export interface ProgrammeExerciceAvecExercice extends ProgrammeExercice {
   exercice: Exercice
@@ -66,6 +73,40 @@ export async function retirerExerciceProgramme(programmeExerciceId: number): Pro
 
 export async function majSeriesProgramme(programmeExerciceId: number, seriesCibles: number): Promise<void> {
   await db.programmeExercices.update(programmeExerciceId, { seriesCibles: Math.max(1, seriesCibles) })
+}
+
+export async function totalSeriesParGroupeProgramme(): Promise<TotalSeriesGroupe[]> {
+  const [programmes, toutesLesLignes, cibles] = await Promise.all([
+    listerProgrammes(),
+    db.programmeExercices.toArray(),
+    db.ciblesVolume.toArray(),
+  ])
+  const idsProgrammes = new Set(programmes.map((p) => p.id))
+  const lignesActives = toutesLesLignes.filter((l) => idsProgrammes.has(l.programmeId))
+
+  const exerciceParId = new Map(
+    (await db.exercices.bulkGet(Array.from(new Set(lignesActives.map((l) => l.exerciceId))))).map((e) =>
+      e ? [e.id, e] : null,
+    ).filter((x): x is [number, Exercice] => x !== null),
+  )
+
+  const totalParGroupe = new Map<GroupeMusculaire, number>()
+  for (const ligne of lignesActives) {
+    const exercice = exerciceParId.get(ligne.exerciceId)
+    if (!exercice) continue
+    totalParGroupe.set(
+      exercice.groupeMusculaire,
+      (totalParGroupe.get(exercice.groupeMusculaire) ?? 0) + ligne.seriesCibles,
+    )
+  }
+
+  const cibleParGroupe = new Map(cibles.map((c) => [c.groupeMusculaire, c.seriesCibleSemaine]))
+
+  return GROUPES_PAR_PRIORITE.map((groupe) => ({
+    groupe,
+    totalProgramme: totalParGroupe.get(groupe) ?? 0,
+    cible: cibleParGroupe.get(groupe) ?? 0,
+  }))
 }
 
 export async function deplacerExerciceProgramme(

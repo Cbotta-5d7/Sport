@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { Exercice } from '../../db/types'
+import type { Exercice, GroupeMusculaire } from '../../db/types'
 import {
   listerProgrammes,
   exercicesProgramme,
@@ -11,6 +11,7 @@ import {
   retirerExerciceProgramme,
   majSeriesProgramme,
   deplacerExerciceProgramme,
+  totalSeriesParGroupeProgramme,
   type ProgrammeExerciceAvecExercice,
 } from '../../db/programme'
 import { ModaleChoixExercice } from '../seance/ModaleChoixExercice'
@@ -19,7 +20,15 @@ interface Props {
   onRetour: () => void
 }
 
-function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string }) {
+function JourProgramme({
+  programmeId,
+  nom,
+  groupesEnTrop,
+}: {
+  programmeId: number
+  nom: string
+  groupesEnTrop: Set<GroupeMusculaire>
+}) {
   const exercices = useLiveQuery(
     () => exercicesProgramme(programmeId),
     [programmeId],
@@ -69,10 +78,14 @@ function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string 
       </div>
 
       <div className="flex flex-col gap-2">
-        {exercices.map((pe, index) => (
+        {exercices.map((pe, index) => {
+          const enTrop = groupesEnTrop.has(pe.exercice.groupeMusculaire)
+          return (
           <div
             key={pe.id}
-            className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 px-3 py-2"
+            className={`flex items-center justify-between gap-2 rounded-xl border px-3 py-2 ${
+              enTrop ? 'border-red-300 bg-red-50' : 'border-slate-200'
+            }`}
           >
             <div className="flex shrink-0 flex-col">
               <button
@@ -96,7 +109,7 @@ function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string 
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm text-slate-800">{pe.exercice.nom}</p>
-              <p className="text-xs text-slate-400">{pe.exercice.groupeMusculaire}</p>
+              <p className={`text-xs ${enTrop ? 'text-red-500' : 'text-slate-400'}`}>{pe.exercice.groupeMusculaire}</p>
             </div>
             <div className="flex items-center gap-1">
               <button
@@ -124,7 +137,8 @@ function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string 
               ✕
             </button>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       <button
@@ -183,6 +197,11 @@ function JourProgramme({ programmeId, nom }: { programmeId: number; nom: string 
 
 export function ProgrammeScreen({ onRetour }: Props) {
   const programmes = useLiveQuery(() => listerProgrammes(), [], undefined)
+  const totaux = useLiveQuery(() => totalSeriesParGroupeProgramme(), [programmes], [])
+
+  const groupesEnTrop = new Set(
+    totaux.filter((t) => t.cible > 0 && t.totalProgramme > t.cible).map((t) => t.groupe),
+  )
 
   async function ajouterJour() {
     await creerProgramme(`Jour ${(programmes?.length ?? 0) + 1}`)
@@ -212,16 +231,36 @@ export function ProgrammeScreen({ onRetour }: Props) {
       {!programmes && <p className="text-slate-400">Chargement…</p>}
 
       {programmes?.map((p) => (
-        <JourProgramme key={p.id} programmeId={p.id} nom={p.nom} />
+        <JourProgramme key={p.id} programmeId={p.id} nom={p.nom} groupesEnTrop={groupesEnTrop} />
       ))}
 
       <button
         type="button"
         onClick={ajouterJour}
-        className="min-h-12 rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500"
+        className="mb-6 min-h-12 rounded-2xl border border-dashed border-slate-300 text-sm text-slate-500"
       >
         + Ajouter un jour
       </button>
+
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Récap par groupe musculaire</h2>
+      <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200">
+        {totaux.map((t) => {
+          const enTrop = t.cible > 0 && t.totalProgramme > t.cible
+          return (
+            <div
+              key={t.groupe}
+              className={`flex justify-between border-b border-slate-200 px-4 py-2 last:border-0 ${
+                enTrop ? 'bg-red-50' : ''
+              }`}
+            >
+              <span className={enTrop ? 'text-red-700' : 'text-slate-800'}>{t.groupe}</span>
+              <span className={enTrop ? 'font-semibold text-red-700' : 'text-slate-500'}>
+                {t.totalProgramme} / {t.cible} séries
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
