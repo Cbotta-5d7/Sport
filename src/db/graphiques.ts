@@ -23,7 +23,8 @@ function dernieresNSemaines(n: number, reference = new Date()): Date[] {
 
 export interface PointChargeRM {
   semaine: string
-  chargeMax: number
+  // null = pas de série faite sur cet exercice cette semaine-là (à ne pas confondre avec "0 kg").
+  chargeMax: number | null
   rm1: number | null
 }
 
@@ -45,7 +46,11 @@ export async function chargeEt1RMParSemaine(exerciceId: number, nbSemaines = 12)
         if (rm && rm.fiable) rm1 = Math.max(rm1, rm.valeur)
       }
     }
-    return { semaine: libelleSemaine(debut), chargeMax, rm1: rm1 > 0 ? rm1 : null }
+    return {
+      semaine: libelleSemaine(debut),
+      chargeMax: chargeMax > 0 ? chargeMax : null,
+      rm1: rm1 > 0 ? rm1 : null,
+    }
   })
 }
 
