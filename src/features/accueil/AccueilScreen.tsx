@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { etatsGroupes } from '../../db/queries'
 import { tableauBordSemaine } from '../../db/dashboard'
@@ -37,8 +37,17 @@ export function AccueilScreen({
   const [tri, setTri] = useState(false)
   const [selection, setSelection] = useState<GroupeMusculaire[]>([])
 
-  const etats = useLiveQuery(() => etatsGroupes(), [], undefined)
-  const tableau = useLiveQuery(() => tableauBordSemaine(), [], null)
+  // Les couleurs de disponibilité dépendent du temps réel écoulé, pas seulement des écritures en
+  // base : sans ce tick, useLiveQuery ne recalcule que sur changement de données et l'écran reste
+  // figé sur un état périmé si on le laisse ouvert sans rien modifier.
+  const [heureRafraichissement, setHeureRafraichissement] = useState(() => Date.now())
+  useEffect(() => {
+    const id = setInterval(() => setHeureRafraichissement(Date.now()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  const etats = useLiveQuery(() => etatsGroupes(), [heureRafraichissement], undefined)
+  const tableau = useLiveQuery(() => tableauBordSemaine(), [heureRafraichissement], null)
 
   const etatsTries = useMemo(() => {
     if (!etats) return []
