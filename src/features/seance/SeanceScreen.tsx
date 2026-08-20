@@ -22,6 +22,7 @@ import { useWakeLock } from '../../hooks/useWakeLock'
 import { vibrerCourt } from '../../utils/vibration'
 import { EntreeSerie } from './EntreeSerie'
 import { BlocDerniereFois } from './BlocDerniereFois'
+import { MinuteurRepos } from './MinuteurRepos'
 import { ModaleChoixExercice } from './ModaleChoixExercice'
 import { ModaleNoteSeance } from './ModaleNoteSeance'
 import { ModaleNoteExercice } from '../exercices/ModaleNoteExercice'
@@ -343,6 +344,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <MinuteurRepos />
       <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>

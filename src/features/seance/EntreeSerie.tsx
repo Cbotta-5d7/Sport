@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useAppuiRepete } from '../../hooks/useAppuiRepete'
 import { ClavierNumerique } from './ClavierNumerique'
-import { MinuteurRepos } from './MinuteurRepos'
 import { BlocTonnage } from './BlocTonnage'
 import type { ComparaisonTonnage } from '../../utils/tonnageComparaison'
 import { formatKg } from '../../utils/nombres'
@@ -92,7 +91,6 @@ export function EntreeSerie({
 
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-2">
-          <MinuteurRepos />
           <BlocTonnage comparaison={comparaisonTonnage} />
         </div>
         <button
