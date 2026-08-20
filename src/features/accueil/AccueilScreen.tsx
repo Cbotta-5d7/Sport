@@ -119,6 +119,10 @@ export function AccueilScreen({
           const quotaAtteint = stat ? stat.totalSeries >= stat.cibleSeries : false
           const disponible = etat.heuresDepuisDerniere === null || etat.heuresDepuisDerniere >= HEURES_RECUPERATION
           const couleur = CLASSES_DISPONIBILITE[quotaAtteint ? 'complete' : disponible ? 'disponible' : 'indispo']
+          const heuresAvantDisponible =
+            !disponible && etat.heuresDepuisDerniere !== null
+              ? Math.max(1, Math.ceil(HEURES_RECUPERATION - etat.heuresDepuisDerniere))
+              : null
           const selectionne = selection.includes(etat.groupe)
           const reste = stat ? Math.max(0, stat.cibleSeries - stat.totalSeries) : null
           const progression = stat && stat.cibleSeries > 0 ? Math.min(100, (stat.totalSeries / stat.cibleSeries) * 100) : 0
@@ -140,6 +144,7 @@ export function AccueilScreen({
                     {etat.joursDepuisDerniere === null
                       ? 'Jamais fait'
                       : formatDelaiRelatif(etat.joursDepuisDerniere)}
+                    {heuresAvantDisponible !== null && ` · disponible dans ${heuresAvantDisponible} h`}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
