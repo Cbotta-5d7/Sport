@@ -16,7 +16,7 @@ import { supprimerSeance, supprimerSeanceExercice } from '../../db/historique'
 import { nowIso } from '../../utils/dates'
 import { formatKg } from '../../utils/nombres'
 import { calculerSuggestion } from '../../utils/progression'
-import { calculerComparaisonTonnage } from '../../utils/tonnageComparaison'
+import { calculerProgressionCharge } from '../../utils/progressionCharge'
 import { detecterDepassementLarge, detecterChuteReps } from '../../utils/coach'
 import { useChronometre, formatDuree } from '../../hooks/useChronometre'
 import { useWakeLock } from '../../hooks/useWakeLock'
@@ -155,9 +155,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
   const nbPrevuGroupe = previsionsGroupe.reduce((acc: number, p) => acc + (p ?? 3), 0)
 
   const estDerniereSerie = seriesActuelles.length + 1 >= (prevision ?? Infinity)
-  const dernieresTravail = (historiqueExo[0]?.series ?? []).filter((s) => s.type !== 'échauffement')
   const historiqueRecentSeries = historiqueExo.map((h) => h.series)
-  const comparaisonTonnage = calculerComparaisonTonnage(seriesActuelles, dernieresTravail.length ? dernieresTravail : null, historiqueRecentSeries, prevision)
+  const progressionCharge = calculerProgressionCharge(seriesActuelles, historiqueRecentSeries)
 
   async function validerSerie() {
     if (!seActuel) return
@@ -534,7 +533,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
           poidsKg={entree.poidsKg}
           reps={entree.reps}
           incrementKg={seActuel.exercice.incrementKg}
-          comparaisonTonnage={comparaisonTonnage}
+          progressionCharge={progressionCharge}
           onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
           onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
           onValider={validerSerie}

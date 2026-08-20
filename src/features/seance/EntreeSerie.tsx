@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useAppuiRepete } from '../../hooks/useAppuiRepete'
 import { ClavierNumerique } from './ClavierNumerique'
-import { BlocTonnage } from './BlocTonnage'
-import type { ComparaisonTonnage } from '../../utils/tonnageComparaison'
+import { CourbeCharge } from './CourbeCharge'
+import type { ProgressionCharge } from '../../utils/progressionCharge'
 import { formatKg } from '../../utils/nombres'
 
 interface Props {
@@ -11,7 +11,7 @@ interface Props {
   poidsKg: number
   reps: number
   incrementKg: number
-  comparaisonTonnage: ComparaisonTonnage
+  progressionCharge: ProgressionCharge
   onChangerPoids: (poids: number) => void
   onChangerReps: (reps: number) => void
   onValider: () => void
@@ -23,7 +23,7 @@ export function EntreeSerie({
   poidsKg,
   reps,
   incrementKg,
-  comparaisonTonnage,
+  progressionCharge,
   onChangerPoids,
   onChangerReps,
   onValider,
@@ -91,7 +91,7 @@ export function EntreeSerie({
 
       <div className="flex items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-2">
-          <BlocTonnage comparaison={comparaisonTonnage} />
+          <CourbeCharge progression={progressionCharge} />
         </div>
         <button
           type="button"
