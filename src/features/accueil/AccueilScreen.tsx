@@ -17,11 +17,13 @@ interface Props {
   onOuvrirProgramme: () => void
 }
 
+const HEURES_BIENTOT_DISPONIBLE = 60
 const HEURES_RECUPERATION = 72
 
 const CLASSES_DISPONIBILITE = {
   complete: 'bg-emerald-50 text-emerald-700',
   disponible: 'bg-amber-50 text-amber-700',
+  bientot: 'bg-yellow-200 text-yellow-800',
   indispo: 'bg-red-50 text-red-700',
 }
 
@@ -127,7 +129,12 @@ export function AccueilScreen({
           const stat = statsParGroupe.get(etat.groupe)
           const quotaAtteint = stat ? stat.totalSeries >= stat.cibleSeries : false
           const disponible = etat.heuresDepuisDerniere === null || etat.heuresDepuisDerniere >= HEURES_RECUPERATION
-          const couleur = CLASSES_DISPONIBILITE[quotaAtteint ? 'complete' : disponible ? 'disponible' : 'indispo']
+          const bientotDisponible =
+            !disponible && etat.heuresDepuisDerniere !== null && etat.heuresDepuisDerniere >= HEURES_BIENTOT_DISPONIBLE
+          const couleur =
+            CLASSES_DISPONIBILITE[
+              quotaAtteint ? 'complete' : disponible ? 'disponible' : bientotDisponible ? 'bientot' : 'indispo'
+            ]
           const heuresAvantDisponible =
             !disponible && etat.heuresDepuisDerniere !== null
               ? Math.max(1, Math.ceil(HEURES_RECUPERATION - etat.heuresDepuisDerniere))
