@@ -1,10 +1,23 @@
+import { execSync } from 'node:child_process'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+function commitCourt(): string {
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim()
+  } catch {
+    return 'inconnu'
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: '/Sport/',
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(commitCourt()),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     react(),
     VitePWA({

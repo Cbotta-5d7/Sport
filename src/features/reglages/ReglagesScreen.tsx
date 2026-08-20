@@ -283,6 +283,10 @@ export function ReglagesScreen({ onRetour, onOuvrirSauvegardes, onOuvrirCalculat
       >
         Export JSON manuel
       </button>
+
+      <p className="mt-6 text-center text-xs text-slate-300">
+        Version {__BUILD_COMMIT__} · {new Date(__BUILD_TIME__).toLocaleString('fr-FR')}
+      </p>
     </div>
   )
 }
