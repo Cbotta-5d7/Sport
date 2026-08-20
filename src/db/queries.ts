@@ -163,13 +163,16 @@ export async function derniereSeanceExercicePourExercice(
 export async function historiqueExercice(
   exerciceId: number,
   limite = 12,
+  options: { inclureEnCours?: boolean } = {},
 ): Promise<{ seance: Seance; series: Serie[] }[]> {
   const seanceExercices = await db.seanceExercices.where('exerciceId').equals(exerciceId).toArray()
   const resultats: { seance: Seance; series: Serie[] }[] = []
 
   for (const se of seanceExercices) {
     const seance = await db.seances.get(se.seanceId)
-    if (!seance || seance.statut !== 'terminee') continue
+    if (!seance) continue
+    const inclus = seance.statut === 'terminee' || (options.inclureEnCours && seance.statut === 'en_cours')
+    if (!inclus) continue
     const series = (await db.series.where('seanceExerciceId').equals(se.id).toArray()).sort(
       (a, b) => a.numeroSerie - b.numeroSerie,
     )

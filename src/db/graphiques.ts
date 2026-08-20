@@ -28,7 +28,7 @@ export interface PointChargeRM {
 }
 
 export async function chargeEt1RMParSemaine(exerciceId: number, nbSemaines = 12): Promise<PointChargeRM[]> {
-  const historique = await historiqueExercice(exerciceId, 200)
+  const historique = await historiqueExercice(exerciceId, 200, { inclureEnCours: true })
   const semaines = dernieresNSemaines(nbSemaines)
 
   return semaines.map((debut) => {
@@ -56,7 +56,7 @@ export interface PointTonnageSeance {
 }
 
 export async function tonnageParSeance(exerciceId: number): Promise<PointTonnageSeance[]> {
-  const historique = (await historiqueExercice(exerciceId, 200)).slice().reverse()
+  const historique = (await historiqueExercice(exerciceId, 200, { inclureEnCours: true })).slice().reverse()
   const points: PointTonnageSeance[] = historique.map((h) => ({
     date: h.seance.date,
     tonnage: tonnageTotal(h.series.filter(estSerieDeTravail)),
@@ -76,7 +76,7 @@ export interface PointNuage {
 }
 
 export async function nuagePoidsReps(exerciceId: number): Promise<PointNuage[]> {
-  const historique = await historiqueExercice(exerciceId, 200)
+  const historique = await historiqueExercice(exerciceId, 200, { inclureEnCours: true })
   return historique.flatMap((h) => h.series.filter(estSerieDeTravail).map((s) => ({ poidsKg: s.poidsKg, reps: s.reps })))
 }
 
@@ -155,7 +155,7 @@ export async function indiceChargeGroupe(groupe: GroupeMusculaire, nbSemaines = 
   const rmParSemaine: number[][] = semaines.map(() => [])
 
   for (const exo of exercices) {
-    const historique = await historiqueExercice(exo.id, 200)
+    const historique = await historiqueExercice(exo.id, 200, { inclureEnCours: true })
     semaines.forEach((debut, i) => {
       const fin = new Date(debut)
       fin.setDate(fin.getDate() + 7)
