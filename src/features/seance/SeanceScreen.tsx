@@ -9,6 +9,7 @@ import {
   seriesSemaineGroupe,
 } from '../../db/queries'
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
+import { previsionProgrammeDuJour } from '../../db/programme'
 import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
 import { detecterRecord } from '../../db/records'
 import { supprimerSeance, supprimerSeanceExercice } from '../../db/historique'
@@ -237,7 +238,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       statut: 'a_faire',
       remplaceExerciceId: null,
     })
-    await definirPrevisionSeries(nouvelSEId, exercice.seriesCibleDefaut)
+    const seriesProgramme = await previsionProgrammeDuJour(exercice.id)
+    await definirPrevisionSeries(nouvelSEId, seriesProgramme ?? exercice.seriesCibleDefaut)
     setModaleChoix(null)
     setOngletActif(seanceExercices.length)
   }

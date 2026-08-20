@@ -23,6 +23,16 @@ export async function programmeDuJour(reference = new Date()): Promise<Programme
   return programmes.find((p) => p.nom.trim().toLowerCase() === nomJour) ?? null
 }
 
+export async function previsionProgrammeDuJour(
+  exerciceId: number,
+  reference = new Date(),
+): Promise<number | undefined> {
+  const programme = await programmeDuJour(reference)
+  if (!programme) return undefined
+  const liste = await exercicesProgramme(programme.id)
+  return liste.find((pe) => pe.exerciceId === exerciceId)?.seriesCibles
+}
+
 export async function exercicesProgramme(programmeId: number): Promise<ProgrammeExerciceAvecExercice[]> {
   const liste = (await db.programmeExercices.where('programmeId').equals(programmeId).toArray()).sort(
     (a, b) => a.ordre - b.ordre,
