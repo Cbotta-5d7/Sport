@@ -1,7 +1,7 @@
 import { db } from './schema'
 import { ordrePriorite } from './types'
 import type { Exercice, GroupeMusculaire, Seance, SeanceExercice, Serie } from './types'
-import { estDansSemaine, joursDepuis, heuresDepuis } from '../utils/dates'
+import { estDansSemaine, heuresDepuis } from '../utils/dates'
 import { estSerieDeTravail } from '../utils/calculs'
 
 export interface EtatGroupe {
@@ -85,11 +85,14 @@ export async function etatsGroupes(): Promise<EtatGroupe[]> {
   for (const cible of cibles) {
     const derniere = await derniereSeanceTerminee(cible.groupeMusculaire)
     const series = await seriesSemaineGroupe(cible.groupeMusculaire)
+    const heures = derniere ? heuresDepuis(derniere.date) : null
     resultats.push({
       groupe: cible.groupeMusculaire,
       derniereDateIso: derniere?.date ?? null,
-      joursDepuisDerniere: derniere ? joursDepuis(derniere.date) : null,
-      heuresDepuisDerniere: derniere ? heuresDepuis(derniere.date) : null,
+      // Dérivé des mêmes heures que heuresDepuisDerniere (plutôt qu'un diff calendaire à minuit)
+      // pour que le texte "il y a X jours" reste cohérent avec le seuil de récupération en heures.
+      joursDepuisDerniere: heures !== null ? Math.floor(heures / 24) : null,
+      heuresDepuisDerniere: heures,
       cibleSeriesSemaine: cible.seriesCibleSemaine,
       cibleSeancesSemaine: cible.seancesCibleSemaine,
       seriesSemaine: series,
