@@ -3,7 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { db } from '../../db/schema'
 import type { Exercice } from '../../db/types'
 import { derniereSeanceExercicePourExercice } from '../../db/queries'
-import { chargeEt1RMParSemaine, type PointChargeRM } from '../../db/graphiques'
+import { chargeEt1RMParSeance, type PointChargeRM } from '../../db/graphiques'
 import { joursDepuis } from '../../utils/dates'
 
 const AXE_STYLE = { fontSize: 11, fill: '#64748b' }
@@ -24,7 +24,7 @@ export function ReperesScreen({ onRetour }: Props) {
     const exercices = (await db.exercices.toArray()).filter((e) => e.estRepere && !e.archive)
     const resultats: RepereAvecDonnees[] = []
     for (const exo of exercices) {
-      const courbe = await chargeEt1RMParSemaine(exo.id)
+      const courbe = await chargeEt1RMParSeance(exo.id)
       const derniere = await derniereSeanceExercicePourExercice(exo.id)
       resultats.push({
         exercice: exo,
@@ -70,7 +70,11 @@ export function ReperesScreen({ onRetour }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={courbe}>
                 <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                <XAxis dataKey="semaine" tick={AXE_STYLE} />
+                <XAxis
+                  dataKey="date"
+                  tick={AXE_STYLE}
+                  tickFormatter={(d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                />
                 <YAxis tick={AXE_STYLE} width={30} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="chargeMax" name="Charge max" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />

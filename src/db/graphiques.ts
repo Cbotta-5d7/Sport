@@ -22,32 +22,27 @@ function dernieresNSemaines(n: number, reference = new Date()): Date[] {
 // --- Par exercice ---
 
 export interface PointChargeRM {
-  semaine: string
-  // null = pas de série faite sur cet exercice cette semaine-là (à ne pas confondre avec "0 kg").
+  date: string
   chargeMax: number | null
   rm1: number | null
 }
 
-export async function chargeEt1RMParSemaine(exerciceId: number, nbSemaines = 12): Promise<PointChargeRM[]> {
-  const historique = await historiqueExercice(exerciceId, 200, { inclureEnCours: true })
-  const semaines = dernieresNSemaines(nbSemaines)
+// Un point par séance réelle (pas par semaine/jour calendaire) : deux séances du même exercice
+// la même semaine donnent deux points distincts, et une séance sans historique voisin n'affiche
+// jamais de faux 0 puisqu'il n'y a tout simplement pas de bucket vide à remplir.
+export async function chargeEt1RMParSeance(exerciceId: number): Promise<PointChargeRM[]> {
+  const historique = (await historiqueExercice(exerciceId, 200, { inclureEnCours: true })).slice().reverse()
 
-  return semaines.map((debut) => {
-    const fin = new Date(debut)
-    fin.setDate(fin.getDate() + 7)
+  return historique.map((h) => {
     let chargeMax = 0
     let rm1 = 0
-    for (const h of historique) {
-      const d = new Date(h.seance.date)
-      if (d < debut || d >= fin) continue
-      for (const s of h.series.filter(estSerieDeTravail)) {
-        chargeMax = Math.max(chargeMax, s.poidsKg)
-        const rm = estimation1RM(s.poidsKg, s.reps)
-        if (rm && rm.fiable) rm1 = Math.max(rm1, rm.valeur)
-      }
+    for (const s of h.series.filter(estSerieDeTravail)) {
+      chargeMax = Math.max(chargeMax, s.poidsKg)
+      const rm = estimation1RM(s.poidsKg, s.reps)
+      if (rm && rm.fiable) rm1 = Math.max(rm1, rm.valeur)
     }
     return {
-      semaine: libelleSemaine(debut),
+      date: h.seance.date,
       chargeMax: chargeMax > 0 ? chargeMax : null,
       rm1: rm1 > 0 ? rm1 : null,
     }

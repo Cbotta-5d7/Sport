@@ -19,7 +19,7 @@ import {
   indiceChargeGroupe,
   frequenceHebdoGroupe,
   ecartCumuleGroupe,
-  chargeEt1RMParSemaine,
+  chargeEt1RMParSeance,
   type PointSeriesSemaineGroupe,
   type PointIndiceCharge,
   type PointFrequence,
@@ -44,7 +44,7 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
   const courbesExercices = useLiveQuery(
     async () => {
       const exercices = await exercicesActifsParGroupes([groupe])
-      const points = await Promise.all(exercices.map((ex) => chargeEt1RMParSemaine(ex.id)))
+      const points = await Promise.all(exercices.map((ex) => chargeEt1RMParSeance(ex.id)))
       return exercices
         .map((exercice, i) => ({ exercice, points: points[i] }))
         .filter((c) => c.points.some((p) => p.rm1 !== null))
@@ -137,7 +137,11 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={points}>
                       <CartesianGrid stroke="#e2e8f0" vertical={false} />
-                      <XAxis dataKey="semaine" tick={AXE_STYLE} />
+                      <XAxis
+                        dataKey="date"
+                        tick={AXE_STYLE}
+                        tickFormatter={(d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+                      />
                       <YAxis tick={AXE_STYLE} width={30} domain={['dataMin - 2', 'dataMax + 2']} />
                       <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Line

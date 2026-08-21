@@ -16,7 +16,7 @@ import {
 } from 'recharts'
 import { db } from '../../db/schema'
 import {
-  chargeEt1RMParSemaine,
+  chargeEt1RMParSeance,
   tonnageParSeance,
   nuagePoidsReps,
   repartitionParFourchette,
@@ -38,7 +38,7 @@ interface Props {
 
 export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
   const exercice = useLiveQuery(async () => (await db.exercices.get(exerciceId)) ?? null, [exerciceId], null)
-  const chargeRM = useLiveQuery(() => chargeEt1RMParSemaine(exerciceId), [exerciceId], [] as PointChargeRM[])
+  const chargeRM = useLiveQuery(() => chargeEt1RMParSeance(exerciceId), [exerciceId], [] as PointChargeRM[])
   const tonnage = useLiveQuery(() => tonnageParSeance(exerciceId), [exerciceId], [] as PointTonnageSeance[])
   const nuage = useLiveQuery(() => nuagePoidsReps(exerciceId), [exerciceId], [] as PointNuage[])
   const repartition = useLiveQuery(() => repartitionParFourchette(exerciceId), [exerciceId], [] as RepartitionReps[])
@@ -103,12 +103,16 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
         </button>
       </header>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-500">Charge de travail et 1RM estimé (12 semaines)</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Charge de travail et 1RM estimé (par séance)</h2>
       <div className="mb-6 h-44 rounded-2xl border border-slate-200 bg-white p-2">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chargeRM}>
             <CartesianGrid stroke="#e2e8f0" vertical={false} />
-            <XAxis dataKey="semaine" tick={AXE_STYLE} />
+            <XAxis
+              dataKey="date"
+              tick={AXE_STYLE}
+              tickFormatter={(d: string) => new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' })}
+            />
             <YAxis tick={AXE_STYLE} width={30} />
             <Tooltip contentStyle={TOOLTIP_STYLE} />
             <Line type="monotone" dataKey="chargeMax" name="Charge max" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />
