@@ -78,7 +78,7 @@ export function ReperesScreen({ onRetour }: Props) {
                 <YAxis tick={AXE_STYLE} width={30} />
                 <Tooltip contentStyle={TOOLTIP_STYLE} />
                 <Line type="monotone" dataKey="chargeMax" name="Charge max" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />
-                <Line type="monotone" dataKey="rm1" name="1RM estimé" stroke="#0284c7" dot={false} strokeWidth={2} connectNulls />
+                <Line type="monotone" dataKey="score" name="Score de charge" stroke="#0284c7" dot={false} strokeWidth={2} connectNulls />
               </LineChart>
             </ResponsiveContainer>
           </div>

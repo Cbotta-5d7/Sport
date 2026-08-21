@@ -1,5 +1,5 @@
 import { db } from './schema'
-import { estimation1RM, volumeSerie } from '../utils/calculs'
+import { scoreCharge, volumeSerie } from '../utils/calculs'
 
 export interface ResultatRecord {
   poids: boolean
@@ -28,17 +28,12 @@ export async function detecterRecord(
 
   const meilleurPoids = Math.max(...existantes.map((s) => s.poidsKg))
   const meilleurVolume = Math.max(...existantes.map((s) => volumeSerie(s.poidsKg, s.reps)))
-  const rmActuel = estimation1RM(poidsKg, reps)
-  const meilleurRM = Math.max(
-    ...existantes.map((s) => {
-      const rm = estimation1RM(s.poidsKg, s.reps)
-      return rm && rm.fiable ? rm.valeur : 0
-    }),
-  )
+  const scoreActuel = scoreCharge(poidsKg, reps)
+  const meilleurScore = Math.max(...existantes.map((s) => scoreCharge(s.poidsKg, s.reps)))
 
   return {
     poids: poidsKg > meilleurPoids,
-    rm: rmActuel !== null && rmActuel.fiable && rmActuel.valeur > meilleurRM,
+    rm: scoreActuel > meilleurScore,
     volume: volumeSerie(poidsKg, reps) > meilleurVolume,
   }
 }

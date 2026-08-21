@@ -1,12 +1,7 @@
 import type { Serie } from '../db/types'
-import { estSerieDeTravail } from './calculs'
+import { estSerieDeTravail, scoreCharge } from './calculs'
 
 type SerieTravail = Pick<Serie, 'poidsKg' | 'reps' | 'type'>
-
-// Le poids compte pour l'essentiel du score, les reps n'apportent qu'un petit bonus (1%/rep,
-// à comparer aux ~3,3%/rep d'Epley) : monter la charge doit presque toujours l'emporter sur
-// une légère baisse de reps, plutôt que de viser une pure équivalence de force théorique.
-const BONUS_PAR_REP = 0.01
 
 export interface ProgressionCharge {
   // Score du meilleur set de chacune des dernières séances (plus ancienne en premier), pour la courbe.
@@ -23,7 +18,7 @@ function meilleurScoreCharge(series: SerieTravail[]): number | null {
   let meilleur: number | null = null
   for (const s of series.filter(estSerieDeTravail)) {
     if (s.poidsKg <= 0 || s.reps <= 0) continue
-    const score = s.poidsKg * (1 + s.reps * BONUS_PAR_REP)
+    const score = scoreCharge(s.poidsKg, s.reps)
     if (meilleur === null || score > meilleur) meilleur = score
   }
   return meilleur

@@ -18,21 +18,12 @@ export function tonnageParSerie(series: Pick<Serie, 'poidsKg' | 'reps' | 'type'>
   return tonnageTotal(travail) / travail.length
 }
 
-export function epley(poidsKg: number, reps: number): number {
-  return poidsKg * (1 + reps / 30)
-}
-
-export function brzycki(poidsKg: number, reps: number): number {
-  return (poidsKg * 36) / (37 - reps)
-}
-
-export function estimation1RM(poidsKg: number, reps: number): { valeur: number; fiable: boolean } | null {
-  if (reps >= 37) return null
-  const moyenne = (epley(poidsKg, reps) + brzycki(poidsKg, reps)) / 2
-  return {
-    valeur: Math.round(moyenne * 2) / 2,
-    fiable: reps <= 10,
-  }
+// Le poids compte pour l'essentiel du score, les reps n'apportent qu'un petit bonus (1%/rep,
+// à comparer aux ~3,3%/rep d'une estimation de 1RM classique type Epley) : monter la charge doit
+// presque toujours l'emporter sur une légère baisse de reps, plutôt que de viser une pure
+// équivalence de force théorique (ex : 100kg x12 -> 105kg x10 doit se lire comme une progression).
+export function scoreCharge(poidsKg: number, reps: number): number {
+  return poidsKg * (1 + reps * 0.01)
 }
 
 export function variationPourcent(valeur: number, reference: number): number | null {

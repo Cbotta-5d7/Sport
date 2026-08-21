@@ -1,7 +1,7 @@
 import { db } from './schema'
 import type { GroupeMusculaire, Serie } from './types'
 import { debutSemaine } from '../utils/dates'
-import { estimation1RM, tonnageTotal, estSerieDeTravail } from '../utils/calculs'
+import { scoreCharge, tonnageTotal, estSerieDeTravail } from '../utils/calculs'
 import { historiqueExercice } from './queries'
 import { tableauBordSemaine } from './dashboard'
 
@@ -24,7 +24,9 @@ function dernieresNSemaines(n: number, reference = new Date()): Date[] {
 export interface PointChargeRM {
   date: string
   chargeMax: number | null
-  rm1: number | null
+  // Score pondéré poids-dominant (voir utils/calculs.ts scoreCharge), pas un 1RM théorique :
+  // reste cohérent avec l'indicateur "Monte !"/"Progresse" affiché en séance.
+  score: number | null
 }
 
 // Un point par séance réelle (pas par semaine/jour calendaire) : deux séances du même exercice
@@ -35,16 +37,15 @@ export async function chargeEt1RMParSeance(exerciceId: number): Promise<PointCha
 
   return historique.map((h) => {
     let chargeMax = 0
-    let rm1 = 0
+    let score = 0
     for (const s of h.series.filter(estSerieDeTravail)) {
       chargeMax = Math.max(chargeMax, s.poidsKg)
-      const rm = estimation1RM(s.poidsKg, s.reps)
-      if (rm && rm.fiable) rm1 = Math.max(rm1, rm.valeur)
+      score = Math.max(score, scoreCharge(s.poidsKg, s.reps))
     }
     return {
       date: h.seance.date,
       chargeMax: chargeMax > 0 ? chargeMax : null,
-      rm1: rm1 > 0 ? rm1 : null,
+      score: score > 0 ? score : null,
     }
   })
 }
@@ -164,8 +165,7 @@ export async function indiceChargeGroupe(groupe: GroupeMusculaire, nbSemaines = 
         const d = new Date(h.seance.date)
         if (d < debut || d >= fin) continue
         for (const s of h.series.filter(estSerieDeTravail)) {
-          const rm = estimation1RM(s.poidsKg, s.reps)
-          if (rm && rm.fiable) meilleur = Math.max(meilleur, rm.valeur)
+          meilleur = Math.max(meilleur, scoreCharge(s.poidsKg, s.reps))
         }
       }
       if (meilleur > 0) rmParSemaine[i].push(meilleur)

@@ -47,7 +47,7 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
       const points = await Promise.all(exercices.map((ex) => chargeEt1RMParSeance(ex.id)))
       return exercices
         .map((exercice, i) => ({ exercice, points: points[i] }))
-        .filter((c) => c.points.some((p) => p.rm1 !== null))
+        .filter((c) => c.points.some((p) => p.score !== null))
     },
     [groupe],
     [] as { exercice: Exercice; points: PointChargeRM[] }[],
@@ -128,7 +128,7 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
 
       {courbesExercices.length > 0 && (
         <>
-          <h2 className="mb-2 text-sm font-medium text-slate-500">Évolution par exercice (1RM estimé)</h2>
+          <h2 className="mb-2 text-sm font-medium text-slate-500">Évolution par exercice (score de charge)</h2>
           <div className="mb-6 flex flex-col gap-3">
             {courbesExercices.map(({ exercice, points }) => (
               <div key={exercice.id} className="rounded-2xl border border-slate-200 bg-white p-2">
@@ -146,8 +146,8 @@ export function GroupeDetailScreen({ groupe, onRetour }: Props) {
                       <Tooltip contentStyle={TOOLTIP_STYLE} />
                       <Line
                         type="monotone"
-                        dataKey="rm1"
-                        name="1RM estimé"
+                        dataKey="score"
+                        name="Score de charge"
                         stroke="#0284c7"
                         dot={false}
                         strokeWidth={2}

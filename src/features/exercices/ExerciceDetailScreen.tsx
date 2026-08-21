@@ -103,7 +103,7 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
         </button>
       </header>
 
-      <h2 className="mb-2 text-sm font-medium text-slate-500">Charge de travail et 1RM estimé (par séance)</h2>
+      <h2 className="mb-2 text-sm font-medium text-slate-500">Charge de travail et score de charge (par séance)</h2>
       <div className="mb-6 h-44 rounded-2xl border border-slate-200 bg-white p-2">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chargeRM}>
@@ -116,7 +116,7 @@ export function ExerciceDetailScreen({ exerciceId, onRetour }: Props) {
             <YAxis tick={AXE_STYLE} width={30} />
             <Tooltip contentStyle={TOOLTIP_STYLE} />
             <Line type="monotone" dataKey="chargeMax" name="Charge max" stroke="#f97316" dot={false} strokeWidth={2} connectNulls />
-            <Line type="monotone" dataKey="rm1" name="1RM estimé" stroke="#0284c7" dot={false} strokeWidth={2} connectNulls />
+            <Line type="monotone" dataKey="score" name="Score de charge" stroke="#0284c7" dot={false} strokeWidth={2} connectNulls />
           </LineChart>
         </ResponsiveContainer>
       </div>
