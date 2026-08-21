@@ -345,7 +345,6 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   return (
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-slate-50" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-      <MinuteurRepos />
       <header className="flex shrink-0 flex-col gap-1 border-b border-slate-200 bg-white px-4 py-2">
         <div className="flex items-center justify-between">
           <span className="text-lg font-semibold text-slate-900">{formatDuree(dureeSec)}</span>
@@ -476,6 +475,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
           touchStartX.current = null
         }}
       >
+        <div className="flex min-h-full flex-col">
         <div className="mb-4">
           <BlocDerniereFois exerciceId={seActuel.exerciceId} exerciceRemplaceId={seActuel.remplaceExerciceId} />
         </div>
@@ -524,6 +524,9 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
             </div>
           </>
         )}
+
+        <MinuteurRepos />
+        </div>
       </div>
 
       <div className="shrink-0">

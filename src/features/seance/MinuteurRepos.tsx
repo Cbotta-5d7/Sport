@@ -22,12 +22,11 @@ export function MinuteurRepos() {
   return (
     <>
       {flash && <div className="pointer-events-none fixed inset-0 z-50 bg-emerald-400/70" />}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none fixed right-2 top-32 select-none text-right text-[6rem] font-bold leading-none text-red-600/40"
-      >
-        {minutes}:{String(secondes).padStart(2, '0')}
-      </span>
+      <div className="pointer-events-none flex flex-1 min-h-24 items-center justify-center">
+        <span aria-hidden="true" className="select-none text-[6rem] font-bold leading-none text-red-600/40">
+          {minutes}:{String(secondes).padStart(2, '0')}
+        </span>
+      </div>
     </>
   )
 }

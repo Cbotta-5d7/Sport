@@ -25,15 +25,21 @@ export async function jouerBip(): Promise<void> {
   try {
     contexteAudio ??= new AudioContext()
     const ctx = contexteAudio
-    const oscillateur = ctx.createOscillator()
-    const gain = ctx.createGain()
-    oscillateur.frequency.value = 880
-    gain.gain.setValueAtTime(0.2, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35)
-    oscillateur.connect(gain)
-    gain.connect(ctx.destination)
-    oscillateur.start()
-    oscillateur.stop(ctx.currentTime + 0.35)
+    // 4 bips espacés de 0,5s : couvre environ 2 secondes d'alerte au lieu d'un seul bip de 0,35s.
+    const nombreBips = 4
+    const intervalleSec = 0.5
+    for (let i = 0; i < nombreBips; i++) {
+      const debut = ctx.currentTime + i * intervalleSec
+      const oscillateur = ctx.createOscillator()
+      const gain = ctx.createGain()
+      oscillateur.frequency.value = 880
+      gain.gain.setValueAtTime(0.2, debut)
+      gain.gain.exponentialRampToValueAtTime(0.001, debut + 0.35)
+      oscillateur.connect(gain)
+      gain.connect(ctx.destination)
+      oscillateur.start(debut)
+      oscillateur.stop(debut + 0.35)
+    }
   } catch {
     // audio indisponible, on ignore silencieusement
   }
