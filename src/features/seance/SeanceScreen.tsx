@@ -9,6 +9,7 @@ import {
   seriesSemaineGroupe,
 } from '../../db/queries'
 import { lirePrevisionSeries, definirPrevisionSeries } from '../../db/prevision'
+import { lireBrouillonSerie, definirBrouillonSerie, effacerBrouillonSerie } from '../../db/brouillon'
 import { previsionProgrammeDuJour } from '../../db/programme'
 import { demarrerMinuteur, ajusterMinuteur } from '../../db/minuteur'
 import { detecterRecord } from '../../db/records'
@@ -66,6 +67,12 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     null,
   )
 
+  const brouillon = useLiveQuery(
+    () => (seActuel ? lireBrouillonSerie(seActuel.id) : Promise.resolve(null)),
+    [seActuel?.id],
+    null,
+  )
+
   const historiqueExo = useLiveQuery(
     () => (seActuel ? historiqueExercice(seActuel.exerciceId, 5) : Promise.resolve([])),
     [seActuel?.exerciceId],
@@ -83,6 +90,10 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
 
   useEffect(() => {
     if (!seActuel) return
+    if (brouillon) {
+      setEntree(brouillon)
+      return
+    }
     if (seriesActuelles.length > 0) {
       const derniere = seriesActuelles[seriesActuelles.length - 1]
       setEntree({ poidsKg: derniere.poidsKg, reps: derniere.reps })
@@ -93,7 +104,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     const suggestion = calculerSuggestion(seActuel.exercice, dernieresTravail, avantDernieresTravail)
     setEntree({ poidsKg: suggestion.poidsKg, reps: suggestion.repsCible })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [seActuel?.id, seriesActuelles.length, historiqueExo])
+  }, [seActuel?.id, seriesActuelles.length, historiqueExo, brouillon])
 
   const [modaleChoix, setModaleChoix] = useState<'ajouter' | 'remplacer' | null>(null)
   const [indexRemplacement, setIndexRemplacement] = useState<number | null>(null)
@@ -193,6 +204,8 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
     } else if (seActuel.statut === 'a_faire') {
       await db.seanceExercices.update(seActuel.id, { statut: 'en_cours' })
     }
+
+    await effacerBrouillonSerie(seActuel.id)
 
     if (detecterDepassementLarge(entree.reps, seActuel.exercice.repsCibleMax)) {
       const incrementKg = seActuel.exercice.incrementKg
@@ -537,8 +550,14 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
           reps={entree.reps}
           incrementKg={seActuel.exercice.incrementKg}
           progressionCharge={progressionCharge}
-          onChangerPoids={(poids) => setEntree((e) => ({ ...e, poidsKg: poids }))}
-          onChangerReps={(reps) => setEntree((e) => ({ ...e, reps }))}
+          onChangerPoids={(poids) => {
+            setEntree((e) => ({ ...e, poidsKg: poids }))
+            void definirBrouillonSerie(seActuel.id, poids, entree.reps)
+          }}
+          onChangerReps={(reps) => {
+            setEntree((e) => ({ ...e, reps }))
+            void definirBrouillonSerie(seActuel.id, entree.poidsKg, reps)
+          }}
           onValider={validerSerie}
         />
       </div>

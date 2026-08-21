@@ -2,6 +2,7 @@ import { db } from './schema'
 import type { Seance } from './types'
 import { tonnageTotal, estSerieDeTravail } from '../utils/calculs'
 import { seanceExercicesAvecDetails, seanceEnCours } from './queries'
+import { cleBrouillonSerie } from './brouillon'
 
 export interface SeanceHistorique {
   seance: Seance
@@ -51,6 +52,7 @@ export async function supprimerSeanceExercice(seanceExerciceId: number): Promise
     await db.series.where('seanceExerciceId').equals(seanceExerciceId).delete()
     await db.seanceExercices.delete(seanceExerciceId)
     await db.reglages.delete(`previsionSeries:${seanceExerciceId}`)
+    await db.reglages.delete(cleBrouillonSerie(seanceExerciceId))
   })
 }
 
@@ -63,6 +65,7 @@ export async function supprimerSeance(seanceId: number): Promise<void> {
       await db.seanceExercices.where('seanceId').equals(seanceId).delete()
       for (const id of idsSE) {
         await db.reglages.delete(`previsionSeries:${id}`)
+        await db.reglages.delete(cleBrouillonSerie(id))
       }
     }
     await db.seances.delete(seanceId)
