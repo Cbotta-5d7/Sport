@@ -2,6 +2,7 @@ import { db } from './schema'
 import type { Exercice, GroupeMusculaire, Programme, ProgrammeExercice } from './types'
 import { GROUPES_PAR_PRIORITE } from './types'
 import { estDansSemaine, nomJourSemaineFR } from '../utils/dates'
+import { seanceExercicesAvecDetails } from './queries'
 
 export interface TotalSeriesGroupe {
   groupe: GroupeMusculaire
@@ -17,20 +18,46 @@ export async function listerProgrammes(): Promise<Programme[]> {
   return (await db.programmes.toArray()).filter((p) => !p.archive).sort((a, b) => a.ordre - b.ordre)
 }
 
+function groupesProgramme(exos: { exercice: Exercice }[]): Set<GroupeMusculaire> {
+  return new Set(exos.map((e) => e.exercice.groupeMusculaire))
+}
+
+function memeComposition(a: Set<GroupeMusculaire>, b: Set<GroupeMusculaire>): boolean {
+  return a.size === b.size && [...a].every((g) => b.has(g))
+}
+
 export async function programmeDuJour(reference = new Date()): Promise<Programme | null> {
   const programmes = await listerProgrammes()
   if (programmes.length === 0) return null
 
   // Se base sur la séquence logique des programmes (leur ordre), pas sur le jour calendaire réel :
   // si la semaine est décalée (ex : mardi/mercredi/vendredi/samedi au lieu de lundi/mardi/jeudi/
-  // vendredi), on propose le prochain programme de la séquence en fonction du nombre de séances déjà
-  // terminées cette semaine, plutôt que celui associé au jour calendaire, qui ne correspondrait à rien.
+  // vendredi), on propose le prochain programme de la séquence pas encore fait cette semaine.
+  //
+  // On ne compte PAS simplement le nombre de séances terminées cette semaine : une séance
+  // improvisée (qui ne correspond à aucun programme, ex : un seul exercice isolé) ne doit pas
+  // décaler la séquence. Seules les séances dont la composition (mêmes groupes musculaires)
+  // correspond à un programme marquent ce programme comme "déjà fait".
+  const groupesParProgramme = new Map<number, Set<GroupeMusculaire>>()
+  for (const p of programmes) {
+    groupesParProgramme.set(p.id, groupesProgramme(await exercicesProgramme(p.id)))
+  }
+
   const seancesTermineesSemaine = (await db.seances.toArray()).filter(
     (s) => s.statut === 'terminee' && estDansSemaine(s.date, reference),
   )
-  if (seancesTermineesSemaine.length < programmes.length) {
-    return programmes[seancesTermineesSemaine.length]
+
+  const idsProgrammesFaits = new Set<number>()
+  for (const seance of seancesTermineesSemaine) {
+    const groupesSeance = groupesProgramme(await seanceExercicesAvecDetails(seance.id))
+    const programmeCorrespondant = programmes.find(
+      (p) => !idsProgrammesFaits.has(p.id) && memeComposition(groupesSeance, groupesParProgramme.get(p.id)!),
+    )
+    if (programmeCorrespondant) idsProgrammesFaits.add(programmeCorrespondant.id)
   }
+
+  const prochain = programmes.find((p) => !idsProgrammesFaits.has(p.id))
+  if (prochain) return prochain
 
   // Repli si toute la séquence de la semaine a déjà été faite (ex : 5e séance) : correspondance par
   // jour calendaire réel, comme avant.
