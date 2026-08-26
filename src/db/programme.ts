@@ -1,7 +1,7 @@
 import { db } from './schema'
 import type { Exercice, GroupeMusculaire, Programme, ProgrammeExercice } from './types'
 import { GROUPES_PAR_PRIORITE } from './types'
-import { nomJourSemaineFR } from '../utils/dates'
+import { estDansSemaine, nomJourSemaineFR } from '../utils/dates'
 
 export interface TotalSeriesGroupe {
   groupe: GroupeMusculaire
@@ -18,8 +18,23 @@ export async function listerProgrammes(): Promise<Programme[]> {
 }
 
 export async function programmeDuJour(reference = new Date()): Promise<Programme | null> {
-  const nomJour = nomJourSemaineFR(reference)
   const programmes = await listerProgrammes()
+  if (programmes.length === 0) return null
+
+  // Se base sur la séquence logique des programmes (leur ordre), pas sur le jour calendaire réel :
+  // si la semaine est décalée (ex : mardi/mercredi/vendredi/samedi au lieu de lundi/mardi/jeudi/
+  // vendredi), on propose le prochain programme de la séquence en fonction du nombre de séances déjà
+  // terminées cette semaine, plutôt que celui associé au jour calendaire, qui ne correspondrait à rien.
+  const seancesTermineesSemaine = (await db.seances.toArray()).filter(
+    (s) => s.statut === 'terminee' && estDansSemaine(s.date, reference),
+  )
+  if (seancesTermineesSemaine.length < programmes.length) {
+    return programmes[seancesTermineesSemaine.length]
+  }
+
+  // Repli si toute la séquence de la semaine a déjà été faite (ex : 5e séance) : correspondance par
+  // jour calendaire réel, comme avant.
+  const nomJour = nomJourSemaineFR(reference)
   return programmes.find((p) => p.nom.trim().toLowerCase() === nomJour) ?? null
 }
 
