@@ -62,10 +62,25 @@ async function construireRecap(seanceId: number): Promise<Recap | null> {
 
   const tonnageSeance = tonnageTotal(toutesLesSeries.filter(estSerieDeTravail))
 
-  const precedentes = await db.seances.where('statut').equals('terminee').toArray()
-  const avant = precedentes
+  // "vs séance précédente" ne veut dire quelque chose que comparé à une séance de même composition
+  // (mêmes groupes musculaires) : comparer le tonnage/série d'une séance Épaules à la dernière
+  // séance tout court (ex : une séance Jambes bien plus lourde) donne un écart absurde et trompeur.
+  const groupesActuels = new Set(seanceExercices.map((se) => se.exercice.groupeMusculaire))
+  const precedentesTerminees = (await db.seances.where('statut').equals('terminee').toArray())
     .filter((s) => s.id !== seanceId && s.date < seance.date)
-    .sort((a, b) => b.date.localeCompare(a.date))[0]
+    .sort((a, b) => b.date.localeCompare(a.date))
+
+  let avant: Seance | undefined
+  for (const candidate of precedentesTerminees) {
+    const sesExosCandidat = await seanceExercicesAvecDetails(candidate.id)
+    const groupesCandidat = new Set(sesExosCandidat.map((se) => se.exercice.groupeMusculaire))
+    const memeComposition =
+      groupesCandidat.size === groupesActuels.size && [...groupesActuels].every((g) => groupesCandidat.has(g))
+    if (memeComposition) {
+      avant = candidate
+      break
+    }
+  }
 
   let variationTonnagePrecedente: number | null = null
   if (avant) {
