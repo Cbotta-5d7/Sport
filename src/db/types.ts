@@ -99,6 +99,11 @@ export interface Seance {
   statut: StatutSeance
   notes: string
   dejaTerminee: boolean
+  // Programme suivi au lancement (déterminé par programmeDuJour() à ce moment-là), enregistré une
+  // fois pour toutes : permet à la séquence hebdomadaire de savoir avec certitude quel programme
+  // cette séance représente, sans avoir à deviner après coup d'après les exercices réellement faits
+  // (une séance réelle dévie souvent du plan — exercice remplacé, série en plus/en moins).
+  programmeId: number | null
 }
 
 export interface SeanceExercice {

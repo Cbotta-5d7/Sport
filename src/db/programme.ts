@@ -18,12 +18,8 @@ export async function listerProgrammes(): Promise<Programme[]> {
   return (await db.programmes.toArray()).filter((p) => !p.archive).sort((a, b) => a.ordre - b.ordre)
 }
 
-function groupesProgramme(exos: { exercice: Exercice }[]): Set<GroupeMusculaire> {
+export function groupesProgramme(exos: { exercice: Exercice }[]): Set<GroupeMusculaire> {
   return new Set(exos.map((e) => e.exercice.groupeMusculaire))
-}
-
-function memeComposition(a: Set<GroupeMusculaire>, b: Set<GroupeMusculaire>): boolean {
-  return a.size === b.size && [...a].every((g) => b.has(g))
 }
 
 export async function programmeDuJour(reference = new Date()): Promise<Programme | null> {
@@ -33,27 +29,37 @@ export async function programmeDuJour(reference = new Date()): Promise<Programme
   // Se base sur la séquence logique des programmes (leur ordre), pas sur le jour calendaire réel :
   // si la semaine est décalée (ex : mardi/mercredi/vendredi/samedi au lieu de lundi/mardi/jeudi/
   // vendredi), on propose le prochain programme de la séquence pas encore fait cette semaine.
-  //
-  // On ne compte PAS simplement le nombre de séances terminées cette semaine : une séance
-  // improvisée (qui ne correspond à aucun programme, ex : un seul exercice isolé) ne doit pas
-  // décaler la séquence. Seules les séances dont la composition (mêmes groupes musculaires)
-  // correspond à un programme marquent ce programme comme "déjà fait".
+  const seancesTermineesSemaine = (await db.seances.toArray())
+    .filter((s) => s.statut === 'terminee' && estDansSemaine(s.date, reference))
+    .sort((a, b) => a.date.localeCompare(b.date))
+
   const groupesParProgramme = new Map<number, Set<GroupeMusculaire>>()
   for (const p of programmes) {
     groupesParProgramme.set(p.id, groupesProgramme(await exercicesProgramme(p.id)))
   }
 
-  const seancesTermineesSemaine = (await db.seances.toArray()).filter(
-    (s) => s.statut === 'terminee' && estDansSemaine(s.date, reference),
-  )
-
   const idsProgrammesFaits = new Set<number>()
   for (const seance of seancesTermineesSemaine) {
+    // Séance lancée après ce correctif : le programme suivi est enregistré directement sur la
+    // séance au démarrage (fiable à 100%, aucune déduction nécessaire).
+    if (seance.programmeId != null) {
+      idsProgrammesFaits.add(seance.programmeId)
+      continue
+    }
+    // Repli pour une séance plus ancienne (créée avant ce correctif, pas de programmeId
+    // enregistré) : associée au programme dont les groupes musculaires se recoupent le plus,
+    // SANS exiger une correspondance exacte — une séance réelle dévie souvent un peu du plan
+    // (exercice remplacé, série ajoutée ou sautée), donc exiger l'exactitude laissait presque
+    // toujours passer les vraies séances sous le radar et bloquait la séquence sur le 1er programme.
     const groupesSeance = groupesProgramme(await seanceExercicesAvecDetails(seance.id))
-    const programmeCorrespondant = programmes.find(
-      (p) => !idsProgrammesFaits.has(p.id) && memeComposition(groupesSeance, groupesParProgramme.get(p.id)!),
-    )
-    if (programmeCorrespondant) idsProgrammesFaits.add(programmeCorrespondant.id)
+    let meilleur: { id: number; score: number } | null = null
+    for (const p of programmes) {
+      if (idsProgrammesFaits.has(p.id)) continue
+      const groupesP = groupesParProgramme.get(p.id)!
+      const score = [...groupesSeance].filter((g) => groupesP.has(g)).length
+      if (score > 0 && (meilleur === null || score > meilleur.score)) meilleur = { id: p.id, score }
+    }
+    if (meilleur) idsProgrammesFaits.add(meilleur.id)
   }
 
   const prochain = programmes.find((p) => !idsProgrammesFaits.has(p.id))

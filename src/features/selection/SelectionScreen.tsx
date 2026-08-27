@@ -49,15 +49,20 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         ),
         programmeDuJour(),
       ])
-      const seriesProgrammeJour = programme
-        ? new Map((await exercicesProgramme(programme.id)).map((pe) => [pe.exerciceId, pe.seriesCibles]))
-        : new Map<number, number>()
+      const exosProgramme = programme ? await exercicesProgramme(programme.id) : []
+      const seriesProgrammeJourBrut = new Map(exosProgramme.map((pe) => [pe.exerciceId, pe.seriesCibles]))
+      // Le programme du jour peut couvrir des groupes musculaires différents de ceux affichés ici
+      // (ex : programme du jour = Push, mais l'utilisateur a choisi de faire Dos maintenant) : dans
+      // ce cas il n'est pertinent pour AUCUN des exercices listés, et l'annoncer comme source des
+      // séries pré-remplies serait trompeur (et il ne doit pas non plus être marqué "fait").
+      const applicable = liste.some((e) => seriesProgrammeJourBrut.has(e.id!))
       return {
         liste,
         dejaCochesSet,
         restantMap: Object.fromEntries(restants) as Record<string, number>,
-        seriesProgrammeJour,
-        nomProgrammeJour: programme?.nom ?? null,
+        seriesProgrammeJour: applicable ? seriesProgrammeJourBrut : new Map<number, number>(),
+        nomProgrammeJour: applicable ? (programme?.nom ?? null) : null,
+        programmeId: applicable ? (programme?.id ?? null) : null,
       }
     },
     [groupes],
@@ -134,6 +139,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
       statut: 'en_cours',
       notes: '',
       dejaTerminee: false,
+      programmeId: donnees?.programmeId ?? null,
     })
     for (const [index, e] of exercicesCoches.entries()) {
       const seanceExerciceId = await db.seanceExercices.add({
