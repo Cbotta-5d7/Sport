@@ -92,7 +92,11 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
         initSelections[e.id!] = { coche: true, seriesPrevues: seriesProgramme }
         continue
       }
-      const coche = donnees.dejaCochesSet.has(e.id!)
+      // Quand un programme est affiché pour ce groupe, les séries pré-remplies doivent venir
+      // EXCLUSIVEMENT de ce programme : un exercice absent du programme ne doit pas se cocher tout
+      // seul via "comme la dernière fois", sous peine de mélanger deux sources différentes sous la
+      // même bannière "d'après ton programme du X" avec des nombres qui ne correspondent à rien.
+      const coche = donnees.nomProgrammeJour === null && donnees.dejaCochesSet.has(e.id!)
       initSelections[e.id!] = {
         coche,
         seriesPrevues: distribuerSeries(
