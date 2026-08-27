@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import type { Exercice, GroupeMusculaire } from '../../db/types'
+import type { Exercice, GroupeMusculaire, Programme } from '../../db/types'
 import {
   exercicesActifsParGroupes,
   idsExercicesDerniereSeance,
@@ -8,9 +8,10 @@ import {
 } from '../../db/queries'
 import { db } from '../../db/schema'
 import { ModaleCreationExercice } from '../exercices/ModaleCreationExercice'
+import { ModaleChoixProgramme } from './ModaleChoixProgramme'
 import { nowIso } from '../../utils/dates'
 import { definirPrevisionSeries } from '../../db/prevision'
-import { programmeDuJour, exercicesProgramme } from '../../db/programme'
+import { listerProgrammes, nombreSeancesTermineesSemaine, exercicesProgramme } from '../../db/programme'
 
 interface Props {
   groupes: GroupeMusculaire[]
@@ -33,11 +34,32 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
   const [selections, setSelections] = useState<Record<number, SelectionExercice>>({})
   const [groupePourCreation, setGroupePourCreation] = useState<GroupeMusculaire | null>(null)
   const [demarrageEnCours, setDemarrageEnCours] = useState(false)
+  const [programmeChoisi, setProgrammeChoisi] = useState<Programme | null | undefined>(undefined)
   const cleInitialisee = useRef<string | null>(null)
+
+  // Deviner le programme du jour (par jour calendaire, puis par séquence hebdomadaire déduite) a
+  // toujours fini par se tromper en usage réel. L'utilisateur choisit maintenant explicitement son
+  // programme via ModaleChoixProgramme, avec juste le nombre de séances déjà faites cette semaine
+  // affiché à titre indicatif — plus aucune déduction automatique.
+  const choixProgramme = useLiveQuery(
+    async () => {
+      const [programmes, nbSeances] = await Promise.all([listerProgrammes(), nombreSeancesTermineesSemaine()])
+      return { programmes, numeroSeanceSemaine: nbSeances + 1 }
+    },
+    [],
+    null,
+  )
+
+  useEffect(() => {
+    if (programmeChoisi === undefined && choixProgramme && choixProgramme.programmes.length === 0) {
+      setProgrammeChoisi(null)
+    }
+  }, [choixProgramme, programmeChoisi])
 
   const donnees = useLiveQuery(
     async () => {
-      const [liste, dejaCochesSet, restants, programme] = await Promise.all([
+      if (programmeChoisi === undefined) return null
+      const [liste, dejaCochesSet, restants] = await Promise.all([
         exercicesActifsParGroupes(groupes),
         idsExercicesDerniereSeance(groupes),
         Promise.all(
@@ -47,25 +69,27 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
             return [g, Math.max(0, (cible?.seriesCibleSemaine ?? 0) - faites)] as const
           }),
         ),
-        programmeDuJour(),
       ])
-      const exosProgramme = programme ? await exercicesProgramme(programme.id) : []
+      const exosProgramme = programmeChoisi ? await exercicesProgramme(programmeChoisi.id) : []
       const seriesProgrammeJourBrut = new Map(exosProgramme.map((pe) => [pe.exerciceId, pe.seriesCibles]))
-      // Le programme du jour peut couvrir des groupes musculaires différents de ceux affichés ici
-      // (ex : programme du jour = Push, mais l'utilisateur a choisi de faire Dos maintenant) : dans
-      // ce cas il n'est pertinent pour AUCUN des exercices listés, et l'annoncer comme source des
-      // séries pré-remplies serait trompeur (et il ne doit pas non plus être marqué "fait").
+      // Le programme choisi peut couvrir des groupes musculaires différents de ceux affichés ici
+      // (ex : programme 1 = Push, mais l'utilisateur a choisi de faire Dos maintenant) : dans ce cas
+      // il n'est pertinent pour AUCUN des exercices listés, et l'annoncer comme source des séries
+      // pré-remplies serait trompeur.
       const applicable = liste.some((e) => seriesProgrammeJourBrut.has(e.id!))
       return {
         liste,
         dejaCochesSet,
         restantMap: Object.fromEntries(restants) as Record<string, number>,
         seriesProgrammeJour: applicable ? seriesProgrammeJourBrut : new Map<number, number>(),
-        nomProgrammeJour: applicable ? (programme?.nom ?? null) : null,
-        programmeId: applicable ? (programme?.id ?? null) : null,
+        nomProgrammeJour: applicable ? (programmeChoisi?.nom ?? null) : null,
+        // Le programme enregistré sur la séance est toujours le choix explicite de l'utilisateur,
+        // qu'il couvre ou non les groupes affichés ici (contrairement à nomProgrammeJour/
+        // seriesProgrammeJour, qui ne concernent que l'affichage du bandeau et le pré-remplissage).
+        programmeId: programmeChoisi?.id ?? null,
       }
     },
-    [groupes],
+    [groupes, programmeChoisi],
     null,
   )
 
@@ -158,6 +182,19 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
     onDemarrer(seanceId)
   }
 
+  if (programmeChoisi === undefined) {
+    if (!choixProgramme) {
+      return <div className="flex min-h-dvh items-center justify-center text-slate-400">Chargement…</div>
+    }
+    return (
+      <ModaleChoixProgramme
+        programmes={choixProgramme.programmes}
+        numeroSeanceSemaine={choixProgramme.numeroSeanceSemaine}
+        onChoisir={setProgrammeChoisi}
+      />
+    )
+  }
+
   return (
     <div
       className="flex min-h-dvh flex-col px-4 pb-32"
@@ -176,7 +213,7 @@ export function SelectionScreen({ groupes, onRetour, onDemarrer }: Props) {
 
       {donnees?.nomProgrammeJour && donnees.seriesProgrammeJour.size > 0 && (
         <p className="mb-4 rounded-xl border border-accent/40 bg-orange-50 px-3 py-2 text-sm text-accent">
-          Séries pré-remplies d'après ton programme du {donnees.nomProgrammeJour.toLowerCase()}.
+          Séries pré-remplies d'après le programme {donnees.nomProgrammeJour}.
         </p>
       )}
 

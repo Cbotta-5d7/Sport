@@ -250,7 +250,7 @@ export function SeanceScreen({ seanceId, onTerminee, onAnnulee, onVoirAccueil, o
       statut: 'a_faire',
       remplaceExerciceId: null,
     })
-    const seriesProgramme = await previsionProgrammeDuJour(exercice.id)
+    const seriesProgramme = await previsionProgrammeDuJour(exercice.id, seance?.programmeId ?? null)
     await definirPrevisionSeries(nouvelSEId, seriesProgramme ?? exercice.seriesCibleDefaut)
     setModaleChoix(null)
     setOngletActif(seanceExercices.length)

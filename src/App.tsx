@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense, useState, type ReactNode } from 'react'
 import { initialiserDonneesParDefaut, initialiserProgrammeParDefaut } from './db/seed'
+import { renommerProgrammesEnNumeros } from './db/programme'
 import { seanceEnCours } from './db/queries'
 import { synchroniserMaintenant } from './sync/synchroniser'
 import { AccueilScreen } from './features/accueil/AccueilScreen'
@@ -64,6 +65,7 @@ function App() {
     async function demarrer() {
       await initialiserDonneesParDefaut()
       await initialiserProgrammeParDefaut()
+      await renommerProgrammesEnNumeros()
       if (navigator.storage?.persist) {
         navigator.storage.persist().catch(() => {})
       }

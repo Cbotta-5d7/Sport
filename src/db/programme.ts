@@ -1,8 +1,7 @@
 import { db } from './schema'
 import type { Exercice, GroupeMusculaire, Programme, ProgrammeExercice } from './types'
 import { GROUPES_PAR_PRIORITE } from './types'
-import { estDansSemaine, nomJourSemaineFR } from '../utils/dates'
-import { seanceExercicesAvecDetails } from './queries'
+import { estDansSemaine } from '../utils/dates'
 
 export interface TotalSeriesGroupe {
   groupe: GroupeMusculaire
@@ -18,66 +17,38 @@ export async function listerProgrammes(): Promise<Programme[]> {
   return (await db.programmes.toArray()).filter((p) => !p.archive).sort((a, b) => a.ordre - b.ordre)
 }
 
-export function groupesProgramme(exos: { exercice: Exercice }[]): Set<GroupeMusculaire> {
-  return new Set(exos.map((e) => e.exercice.groupeMusculaire))
+// Toute tentative de deviner automatiquement le programme du jour (par jour calendaire, puis par
+// séquence hebdomadaire déduite des séances passées) a fini par se tromper en usage réel. À la
+// place : c'est l'utilisateur qui choisit explicitement son programme à chaque lancement de séance
+// (voir ModaleChoixProgramme), avec pour seule aide ce compteur du nombre de séances déjà faites
+// cette semaine, affiché à titre indicatif.
+export async function nombreSeancesTermineesSemaine(reference = new Date()): Promise<number> {
+  const seances = await db.seances.toArray()
+  return seances.filter((s) => s.statut === 'terminee' && estDansSemaine(s.date, reference)).length
 }
 
-export async function programmeDuJour(reference = new Date()): Promise<Programme | null> {
+// Migration ponctuelle : renomme les anciens programmes nommés par jour (Lundi/Mardi/Jeudi/
+// Vendredi...) en numéros (1/2/3/4...) selon leur ordre, à la demande explicite de l'utilisateur.
+// Ne s'exécute qu'une seule fois (marqueur en base) pour ne pas écraser un renommage manuel fait
+// ensuite par l'utilisateur lui-même.
+export async function renommerProgrammesEnNumeros(): Promise<void> {
+  const fait = await db.reglages.get('programmesRenommesEnNumeros')
+  if (fait) return
   const programmes = await listerProgrammes()
-  if (programmes.length === 0) return null
-
-  // Se base sur la séquence logique des programmes (leur ordre), pas sur le jour calendaire réel :
-  // si la semaine est décalée (ex : mardi/mercredi/vendredi/samedi au lieu de lundi/mardi/jeudi/
-  // vendredi), on propose le prochain programme de la séquence pas encore fait cette semaine.
-  const seancesTermineesSemaine = (await db.seances.toArray())
-    .filter((s) => s.statut === 'terminee' && estDansSemaine(s.date, reference))
-    .sort((a, b) => a.date.localeCompare(b.date))
-
-  const groupesParProgramme = new Map<number, Set<GroupeMusculaire>>()
-  for (const p of programmes) {
-    groupesParProgramme.set(p.id, groupesProgramme(await exercicesProgramme(p.id)))
-  }
-
-  const idsProgrammesFaits = new Set<number>()
-  for (const seance of seancesTermineesSemaine) {
-    // Séance lancée après ce correctif : le programme suivi est enregistré directement sur la
-    // séance au démarrage (fiable à 100%, aucune déduction nécessaire).
-    if (seance.programmeId != null) {
-      idsProgrammesFaits.add(seance.programmeId)
-      continue
+  await db.transaction('rw', db.programmes, db.reglages, async () => {
+    for (const [index, p] of programmes.entries()) {
+      await db.programmes.update(p.id, { nom: String(index + 1) })
     }
-    // Repli pour une séance plus ancienne (créée avant ce correctif, pas de programmeId
-    // enregistré) : associée au programme dont les groupes musculaires se recoupent le plus,
-    // SANS exiger une correspondance exacte — une séance réelle dévie souvent un peu du plan
-    // (exercice remplacé, série ajoutée ou sautée), donc exiger l'exactitude laissait presque
-    // toujours passer les vraies séances sous le radar et bloquait la séquence sur le 1er programme.
-    const groupesSeance = groupesProgramme(await seanceExercicesAvecDetails(seance.id))
-    let meilleur: { id: number; score: number } | null = null
-    for (const p of programmes) {
-      if (idsProgrammesFaits.has(p.id)) continue
-      const groupesP = groupesParProgramme.get(p.id)!
-      const score = [...groupesSeance].filter((g) => groupesP.has(g)).length
-      if (score > 0 && (meilleur === null || score > meilleur.score)) meilleur = { id: p.id, score }
-    }
-    if (meilleur) idsProgrammesFaits.add(meilleur.id)
-  }
-
-  const prochain = programmes.find((p) => !idsProgrammesFaits.has(p.id))
-  if (prochain) return prochain
-
-  // Repli si toute la séquence de la semaine a déjà été faite (ex : 5e séance) : correspondance par
-  // jour calendaire réel, comme avant.
-  const nomJour = nomJourSemaineFR(reference)
-  return programmes.find((p) => p.nom.trim().toLowerCase() === nomJour) ?? null
+    await db.reglages.put({ cle: 'programmesRenommesEnNumeros', valeur: 'fait' })
+  })
 }
 
 export async function previsionProgrammeDuJour(
   exerciceId: number,
-  reference = new Date(),
+  programmeId: number | null,
 ): Promise<number | undefined> {
-  const programme = await programmeDuJour(reference)
-  if (!programme) return undefined
-  const liste = await exercicesProgramme(programme.id)
+  if (programmeId == null) return undefined
+  const liste = await exercicesProgramme(programmeId)
   return liste.find((pe) => pe.exerciceId === exerciceId)?.seriesCibles
 }
 
